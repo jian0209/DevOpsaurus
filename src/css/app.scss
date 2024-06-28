@@ -18,3 +18,37 @@
   color: $light;
   font-size: 1.5em;
 }
+
+.page-title-cont {
+  color: $light;
+  width: 100%;
+  background-color: $dark;
+  padding: 15px 40px;
+  margin: 20px 0;
+}
+
+.page-title {
+  font-size: $title-font-size;
+}
+
+.page-subtitle {
+  font-size: $subtitle-font-size;
+  color: $dark-light;
+}
+
+.table-header {
+  font-weight: bold;
+  background-color: $dark;
+  margin: 0 40px;
+  font-size: $table-header-font-size !important;
+}
+
+.table-data-cont {
+  color: $light;
+  background-color: $dark;
+  margin: 0 40px;
+}
+
+.usual-form-input {
+  width: 100%;
+}

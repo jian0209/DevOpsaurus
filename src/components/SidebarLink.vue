@@ -1,6 +1,12 @@
 <template>
   <q-list>
-    <q-item v-if="!$props.isExpended" clickable @click="goTo($props.routeTo)">
+    <q-item
+      v-if="!$props.isExpended"
+      clickable
+      @click="goTo($props.routeTo, $props.name)"
+      :active="$props.activeLink"
+      active-class="active-link"
+    >
       <q-item-section v-if="$props.icon" avatar>
         <q-icon :name="$props.icon" />
       </q-item-section>
@@ -15,13 +21,16 @@
       group="groupExpanded"
       :icon="$props.icon"
       :label="$props.title"
+      :default-opened="$props.needExpend"
     >
       <q-item
         v-for="(item, index) in $props.childLink"
         :key="index"
         clickable
-        @click="goTo(item.routeTo)"
+        @click="goTo(item.routeTo, item.name)"
         class="sidebar-sub-item"
+        :active="item.activeLink"
+        active-class="active-link"
       >
         <q-item-section v-if="item.icon" avatar>
           <q-icon :name="item.icon" />
@@ -38,11 +47,18 @@
 <script>
 import { defineComponent } from "vue";
 import "src/css/component.scss";
-import { useRouteStore } from "src/stores/route.js";
 
 export default defineComponent({
   name: "SidebarLink",
   props: {
+    activeLink: {
+      type: Boolean,
+      default: false,
+    },
+    name: {
+      type: String,
+      default: "",
+    },
     title: {
       type: String,
       required: true,
@@ -63,22 +79,21 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    needExpend: {
+      type: Boolean,
+      default: false,
+    },
     childLink: {
       type: Array,
     },
   },
-  setup() {
-    const routerStore = useRouteStore();
-
-    const goTo = (route) => {
+  methods: {
+    goTo(route, name) {
       if (route) {
-        routerStore.routeTo(route);
+        this.$router.push({ path: route });
+        this.$emit("update:activeLink", name);
       }
-    };
-
-    return {
-      goTo,
-    };
+    },
   },
 });
 </script>

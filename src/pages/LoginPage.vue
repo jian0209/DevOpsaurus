@@ -19,7 +19,7 @@
         @update:modelValue="password = $event"
         type="password"
         clearable
-        errorMessage="Username is required"
+        errorMessage="Password is required"
       />
       <q-btn color="primary" label="Login" class="login-btn" @click="login" />
     </div>

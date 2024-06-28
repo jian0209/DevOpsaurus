@@ -10,7 +10,7 @@ import { Notify } from "quasar";
 export default configure((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
-    // preFetch: true,
+    preFetch: true,
 
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
@@ -98,6 +98,7 @@ export default configure((ctx) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {
+        dark: "true",
         notify: {
           position: "top-right",
         },

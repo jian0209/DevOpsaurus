@@ -3,7 +3,7 @@ import { getToken, removeToken } from "src/utils/auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    token: getToken() || "",
+    token: getToken() || "asd",
     userInfo: null,
   }),
 

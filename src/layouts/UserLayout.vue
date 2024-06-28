@@ -29,6 +29,7 @@
           v-for="link in linksList"
           :key="link.title"
           v-bind="link"
+          @update:activeLink="changeActiveLink($event)"
         />
       </q-list>
     </q-drawer>
@@ -53,76 +54,191 @@ export default defineComponent({
       linksList: [
         {
           title: "Dashboard",
+          name: "Dashboard",
           icon: "space_dashboard",
           routeTo: "/dashboard",
+          activeLink: false,
         },
         {
           title: "Redis",
+          name: "Redis",
           icon: "storage",
           routeTo: "/redis",
+          activeLink: false,
         },
         {
           title: "UPS",
+          name: "UPS",
           icon: "battery_5_bar",
           routeTo: "/ups-monitor",
+          activeLink: false,
         },
         {
           title: "Nodes",
+          name: "Nodes",
           icon: "timeline",
           isExpended: true,
           childLink: [
             {
               title: "Monitor",
+              name: "NodesMonitor",
               icon: "monitor_heart",
               routeTo: "/nodes/monitor",
+              activeLink: false,
             },
             {
               title: "Edit Nginx",
+              name: "NodesNginx",
               icon: "change_circle",
               routeTo: "/nodes/edit",
+              activeLink: false,
             },
           ],
         },
         {
           title: "Database (MySQL)",
+          name: "Database",
           icon: "schema",
           isExpended: true,
           childLink: [
             {
               title: "View Data",
+              name: "DatabaseView",
               icon: "table_chart",
               routeTo: "/database/view",
+              activeLink: false,
             },
             {
               title: "Edit Data",
+              name: "DatabaseEdit",
               icon: "edit_note",
               routeTo: "/database/edit",
+              activeLink: false,
             },
             {
               title: "Database Schedule",
+              name: "DatabaseSchedule",
               icon: "update",
               routeTo: "/database/schedule",
+              activeLink: false,
             },
           ],
         },
         {
           title: "Command",
+          name: "Command",
           icon: "keyboard_command_key",
           routeTo: "/command",
+          activeLink: false,
+        },
+        {
+          title: "Settings",
+          name: "Settings",
+          icon: "settings",
+          isExpended: true,
+          childLink: [
+            {
+              title: "Users",
+              name: "SettingsUser",
+              icon: "people_alt",
+              routeTo: "/settings/user",
+              activeLink: false,
+            },
+            {
+              title: "Redis",
+              name: "SettingsRedis",
+              icon: "storage",
+              routeTo: "/settings/redis",
+              activeLink: false,
+            },
+            {
+              title: "UPS",
+              name: "SettingsUPS",
+              icon: "battery_5_bar",
+              routeTo: "/settings/ups",
+              activeLink: false,
+            },
+            {
+              title: "Nodes",
+              name: "SettingsNodes",
+              icon: "timeline",
+              routeTo: "/settings/nodes",
+              activeLink: false,
+            },
+            {
+              title: "Database",
+              name: "SettingsDatabase",
+              icon: "schema",
+              routeTo: "/settings/database",
+              activeLink: false,
+            },
+            {
+              title: "Command",
+              name: "SettingsCommand",
+              icon: "keyboard_command_key",
+              routeTo: "/settings/command",
+              activeLink: false,
+            },
+            {
+              title: "Mail (SMTP)",
+              name: "SettingsMail",
+              icon: "mail_outline",
+              routeTo: "/settings/mail",
+              activeLink: false,
+            },
+          ],
         },
         {
           title: "Logout",
+          name: "Logout",
           icon: "door_sliding",
           routeTo: "/login",
+          activeLink: false,
         },
       ],
-      leftDrawerOpen: false,
+      leftDrawerOpen: ref(false),
+      activeLink: ref(""),
     };
   },
   methods: {
+    initActiveLink() {
+      this.compareLink("", true);
+    },
     toggleLeftDrawer() {
       this.leftDrawerOpen = !this.leftDrawerOpen;
     },
+    changeActiveLink(link) {
+      this.compareLink(link);
+    },
+    compareLink(link, init = false) {
+      this.linksList.forEach((parentLink, index) => {
+        if (parentLink.childLink && parentLink.childLink.length > 0) {
+          parentLink.childLink.forEach((childLink, j) => {
+            if (init) {
+              if (childLink.routeTo === this.$route.path) {
+                this.linksList[index].childLink[j].activeLink = true;
+                this.linksList[index].needExpend = true;
+              }
+            } else {
+              this.linksList[index].childLink[j].activeLink =
+                childLink.name === link;
+              this.linksList[index].needExpend =
+                this.linksList[index].childLink[j].activeLink;
+            }
+          });
+        } else {
+          if (init) {
+            this.linksList[index].activeLink =
+              parentLink.routeTo === this.$route.path;
+          } else {
+            this.linksList[index].activeLink = parentLink.name === link;
+          }
+        }
+      });
+    },
+  },
+  created() {
+    this.initActiveLink();
   },
 });
 </script>

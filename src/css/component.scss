@@ -1,3 +1,8 @@
 .sidebar-sub-item {
   padding-left: 15%;
 }
+
+.active-link {
+  background-color: $primary;
+  color: $dark;
+}

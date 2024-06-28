@@ -2,35 +2,59 @@ const routes = [
   {
     path: "/login",
     component: () => import("layouts/LoginLayout.vue"),
-    children: [{ path: "", component: () => import("pages/LoginPage.vue") }],
+    children: [
+      {
+        path: "",
+        name: "login",
+        component: () => import("pages/LoginPage.vue"),
+      },
+    ],
   },
   {
     path: "/dashboard",
     component: () => import("layouts/UserLayout.vue"),
     children: [
-      { path: "", component: () => import("pages/DashboardPage.vue") },
+      {
+        path: "",
+        name: "dashboard",
+        component: () => import("pages/DashboardPage.vue"),
+      },
     ],
   },
   {
     path: "/redis",
     component: () => import("layouts/UserLayout.vue"),
-    children: [{ path: "", component: () => import("pages/RedisPage.vue") }],
+    children: [
+      {
+        path: "",
+        name: "redis",
+        component: () => import("pages/RedisPage.vue"),
+      },
+    ],
   },
   {
     path: "/ups-monitor",
     component: () => import("layouts/UserLayout.vue"),
-    children: [{ path: "", component: () => import("pages/UpsPage.vue") }],
+    children: [
+      {
+        path: "",
+        name: "ups-monitor",
+        component: () => import("pages/UpsPage.vue"),
+      },
+    ],
   },
   {
     path: "/nodes",
     component: () => import("layouts/UserLayout.vue"),
     children: [
       {
-        path: "/monitor",
+        path: "monitor",
+        name: "nodes-monitor",
         component: () => import("pages/nodes/MonitorPage.vue"),
       },
       {
-        path: "/edit",
+        path: "edit",
+        name: "nodes-edit",
         component: () => import("pages/nodes/EditNginxPage.vue"),
       },
     ],
@@ -40,15 +64,18 @@ const routes = [
     component: () => import("layouts/UserLayout.vue"),
     children: [
       {
-        path: "/view",
+        path: "view",
+        name: "database-view",
         component: () => import("pages/database/ViewPage.vue"),
       },
       {
-        path: "/edit",
+        path: "edit",
+        name: "database-edit",
         component: () => import("pages/database/EditPage.vue"),
       },
       {
-        path: "/schedule",
+        path: "schedule",
+        name: "database-schedule",
         component: () => import("pages/database/SchedulePage.vue"),
       },
     ],
@@ -59,7 +86,80 @@ const routes = [
     children: [
       {
         path: "",
+        name: "command",
         component: () => import("pages/CommandPage.vue"),
+      },
+    ],
+  },
+  {
+    path: "/settings",
+    component: () => import("layouts/UserLayout.vue"),
+    children: [
+      {
+        path: "user",
+        name: "settings-user",
+        component: () => import("pages/settings/SettingUserPage.vue"),
+      },
+      {
+        path: "user/add",
+        name: "settings-user-add",
+        component: () => import("pages/settings/components/UserAddPage.vue"),
+      },
+      {
+        path: "redis",
+        name: "settings-redis",
+        component: () => import("pages/settings/SettingRedisPage.vue"),
+      },
+      {
+        path: "redis/add",
+        name: "settings-redis-add",
+        component: () => import("pages/settings/components/RedisAddPage.vue"),
+      },
+      {
+        path: "ups",
+        name: "settings-ups",
+        component: () => import("pages/settings/SettingUpsPage.vue"),
+      },
+      {
+        path: "ups/add",
+        name: "settings-ups-add",
+        component: () => import("pages/settings/components/UpsAddPage.vue"),
+      },
+      {
+        path: "nodes",
+        name: "settings-nodes",
+        component: () => import("pages/settings/SettingNodesPage.vue"),
+      },
+      {
+        path: "nodes/add",
+        name: "settings-nodes-add",
+        component: () => import("pages/settings/components/NodesAddPage.vue"),
+      },
+      {
+        path: "database",
+        name: "settings-database",
+        component: () => import("pages/settings/SettingDatabasePage.vue"),
+      },
+      {
+        path: "database/add",
+        name: "settings-database-add",
+        component: () =>
+          import("pages/settings/components/DatabaseAddPage.vue"),
+      },
+      {
+        path: "command",
+        name: "settings-command",
+        component: () => import("pages/settings/SettingCommandPage.vue"),
+      },
+      {
+        path: "command/add",
+        name: "settings-command-add",
+        component: () => import("pages/settings/components/CommandAddPage.vue"),
+      },
+      {
+        path: "mail",
+        name: "settings-mail",
+        component: () => import("pages/settings/SettingMailPage.vue"),
       },
     ],
   },
