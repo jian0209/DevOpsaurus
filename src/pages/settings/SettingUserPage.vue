@@ -9,17 +9,34 @@
         @action:click="goToAddPage"
       />
     </div>
-    <TableContainer :rows="dummyData" :columns="columns" />
+    <TableContainer
+      :rows="dummyData"
+      :columns="columns"
+      @edit:row="editRow($event)"
+    />
+    <DialogComponent
+      title="Edit User"
+      :dialogStatus="editDialogStatus"
+      :formList="formList"
+      :formListDetails="formListDetails"
+      isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable User"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable User ${selectedUser} Log In`"
+    />
   </div>
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
-import { ROLES, STATUS } from "src/utils/constants.js";
-import { useCommonStore } from "src/stores/common.js";
+import DialogComponent from "src/components/Dialog.vue";
+import { ROLES, ROLES_GROUP, STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
 
@@ -29,6 +46,7 @@ export default defineComponent({
     TitleContainer,
     TableContainer,
     UsualButton,
+    DialogComponent,
   },
   data() {
     return {
@@ -43,11 +61,11 @@ export default defineComponent({
           sortable: true,
         },
         {
-          name: "name",
+          name: "username",
           required: true,
           label: "Username",
           align: "left",
-          field: (row) => row.name,
+          field: (row) => row.username,
           format: (val) => `${val}`,
           sortable: true,
         },
@@ -75,7 +93,7 @@ export default defineComponent({
           label: "Role",
           align: "left",
           field: (row) => row.role,
-          format: (val) => ROLES[val] || "Unknown",
+          format: (val) => `${ROLES[val] || val.label}` || "Unknown",
           sortable: true,
         },
         {
@@ -88,11 +106,11 @@ export default defineComponent({
           sortable: true,
         },
         {
-          name: "isMfaEnabled",
+          name: "mfaStatus",
           required: true,
           label: "MFA",
           align: "left",
-          field: (row) => row.isMfaEnabled,
+          field: (row) => row.mfaStatus,
           format: (val) => STATUS[val] || "Unknown",
           sortable: true,
         },
@@ -116,41 +134,97 @@ export default defineComponent({
       dummyData: [
         {
           id: 1,
-          name: "John Doe",
+          username: "John Doe",
           email: "john123@gmail.com",
           group: "IT",
-          isMfaEnabled: 1,
+          mfaStatus: 1,
           role: 2,
           status: 1,
           createdAt: 1719553933000,
         },
         {
           id: 2,
-          name: "Jane Doe",
+          username: "Jane Doe",
           email: "jane123@gmail.com",
           group: "IT",
-          isMfaEnabled: 1,
+          mfaStatus: 1,
           role: 3,
           status: 1,
           createdAt: 1719553933000,
         },
         {
           id: 3,
-          name: "John Smith",
+          username: "John Smith",
           email: "smith@gmsil.com",
           group: "IT",
-          isMfaEnabled: 0,
+          mfaStatus: 0,
           role: 1,
           status: 0,
           createdAt: 1719553933000,
         },
       ],
-      commonStore: useCommonStore(),
+      formList: [
+        {
+          label: "Username",
+          model: "username",
+          type: "text",
+        },
+        {
+          label: "Password",
+          model: "password",
+          type: "password",
+        },
+        {
+          label: "Email",
+          model: "email",
+          type: "email",
+        },
+        {
+          label: "Group",
+          model: "group",
+          type: "text",
+        },
+        {
+          label: "Role",
+          model: "role",
+          type: "select",
+          option: ROLES_GROUP,
+        },
+        {
+          label: "MFA Status",
+          model: "mfaStatus",
+          type: "radio",
+          radioOption: [
+            {
+              label: "Enabled",
+              value: 1,
+            },
+            {
+              label: "Disabled",
+              value: 0,
+            },
+          ],
+        },
+      ],
+      formListDetails: ref({}),
+      editDialogStatus: ref(false),
+      selectedUser: ref(""),
     };
   },
   methods: {
     goToAddPage() {
       this.$router.push("/settings/user/add");
+    },
+    updateDialogStatus(status) {
+      this.editDialogStatus = status;
+    },
+    editRow(row) {
+      row.role = {
+        label: ROLES[row.role] || row.role.label,
+        value: row.role || row.role.value,
+      };
+      this.formListDetails = row;
+      this.editDialogStatus = true;
     },
   },
 });

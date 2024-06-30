@@ -6,17 +6,31 @@
         label="Add UPS Connection"
         color="info"
         icon="add_circle_outline"
+        @action:click="goToAddPage"
       />
     </div>
-    <TableContainer :rows="dummyData" :columns="columns" />
+    <TableContainer
+      :rows="dummyData"
+      :columns="columns"
+      @edit:row="editRow($event)"
+    />
+    <DialogComponent
+      title="Edit UPS"
+      :dialogStatus="editDialogStatus"
+      :formList="formList"
+      :formListDetails="formListDetails"
+      isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
+import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
@@ -27,6 +41,7 @@ export default defineComponent({
     TitleContainer,
     TableContainer,
     UsualButton,
+    DialogComponent,
   },
   data() {
     return {
@@ -109,11 +124,62 @@ export default defineComponent({
           ipAddr: "122.11.149.168",
           port: "8888",
           location: "Tung Ann",
+          parameter: JSON.stringify({
+            ups_bat: "value",
+            ups_log: 123,
+            ups_asd: true,
+            key: {
+              key: "value",
+            },
+          }),
           status: 1,
           createdAt: 1719553933000,
         },
       ],
+      formList: [
+        {
+          label: "Name",
+          model: "name",
+          type: "text",
+        },
+        {
+          label: "IP Address",
+          model: "ipAddr",
+          type: "text",
+        },
+        {
+          label: "Port",
+          model: "port",
+          type: "text",
+        },
+        {
+          label: "Location",
+          model: "location",
+          type: "text",
+        },
+        {
+          label: "Parameter (JSON)",
+          model: "parameter",
+          type: "textarea",
+          placeholder:
+            'e.g. {"key": string, "key": int, "key": bool, "key": {"key": string}}',
+        },
+      ],
+      formListDetails: ref({}),
+      editDialogStatus: ref(false),
     };
+  },
+  methods: {
+    goToAddPage() {
+      this.$router.push("/settings/ups/add");
+    },
+    updateDialogStatus(status) {
+      this.editDialogStatus = status;
+    },
+    editRow(row) {
+      this.formListDetails = row;
+      this.editDialogStatus = true;
+    },
   },
 });
 </script>

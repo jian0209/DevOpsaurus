@@ -5,17 +5,35 @@
       subtitle="Manage Command with Using SSH Connection"
     />
     <div class="button-cont">
-      <UsualButton label="Add Command" color="info" icon="add_circle_outline" />
+      <UsualButton
+        label="Add Command"
+        color="info"
+        icon="add_circle_outline"
+        @action:click="goToAddPage"
+      />
     </div>
-    <TableContainer :rows="dummyData" :columns="columns" />
+    <TableContainer
+      :rows="dummyData"
+      :columns="columns"
+      @edit:row="editRow($event)"
+    />
+    <DialogComponent
+      title="Edit Command"
+      :dialogStatus="editDialogStatus"
+      :formList="formList"
+      :formListDetails="formListDetails"
+      isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
+import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
@@ -26,6 +44,7 @@ export default defineComponent({
     TitleContainer,
     TableContainer,
     UsualButton,
+    DialogComponent,
   },
   data() {
     return {
@@ -58,11 +77,11 @@ export default defineComponent({
           sortable: true,
         },
         {
-          name: "port",
+          name: "sshPort",
           required: true,
           label: "SSH Port",
           align: "left",
-          field: (row) => row.port,
+          field: (row) => row.sshPort,
           format: (val) => `${val}`,
           sortable: true,
         },
@@ -106,13 +125,60 @@ export default defineComponent({
           id: 1,
           name: "production",
           host: "localhost",
-          port: "3306",
+          username: "root",
+          sshPort: "3306",
           command: "curl http://localhost:8080/api/v1/health",
           status: 1,
           createdAt: 1719553933000,
         },
       ],
+      formList: [
+        {
+          label: "Name",
+          model: "name",
+          type: "text",
+        },
+        {
+          label: "Host",
+          model: "host",
+          type: "text",
+        },
+        {
+          label: "Username",
+          model: "username",
+          type: "text",
+        },
+        {
+          label: "SSH Key",
+          model: "sshKey",
+          type: "textarea",
+        },
+        {
+          label: "SSH Port",
+          model: "sshPort",
+          type: "text",
+        },
+        {
+          label: "Command",
+          model: "command",
+          type: "text",
+        },
+      ],
+      formListDetails: ref({}),
+      editDialogStatus: ref(false),
     };
+  },
+  methods: {
+    goToAddPage() {
+      this.$router.push("/settings/command/add");
+    },
+    updateDialogStatus(status) {
+      this.editDialogStatus = status;
+    },
+    editRow(row) {
+      this.formListDetails = row;
+      this.editDialogStatus = true;
+    },
   },
 });
 </script>

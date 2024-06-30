@@ -9,17 +9,32 @@
         label="Add Database Connection"
         color="info"
         icon="add_circle_outline"
+        @action:click="goToAddPage"
       />
     </div>
-    <TableContainer :rows="dummyData" :columns="columns" />
+    <TableContainer
+      :rows="dummyData"
+      :columns="columns"
+      @edit:row="editRow($event)"
+    />
+    <DialogComponent
+      title="Edit database"
+      :dialogStatus="editDialogStatus"
+      :formList="formList"
+      :formListDetails="formListDetails"
+      testBtnTxt="Get Databases and Tables"
+      isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
+import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
@@ -30,6 +45,7 @@ export default defineComponent({
     TitleContainer,
     TableContainer,
     UsualButton,
+    DialogComponent,
   },
   data() {
     return {
@@ -67,6 +83,15 @@ export default defineComponent({
           label: "Port",
           align: "left",
           field: (row) => row.port,
+          format: (val) => `${val}`,
+          sortable: true,
+        },
+        {
+          name: "username",
+          required: true,
+          label: "Username",
+          align: "left",
+          field: (row) => row.username,
           format: (val) => `${val}`,
           sortable: true,
         },
@@ -120,13 +145,80 @@ export default defineComponent({
           name: "production",
           host: "localhost",
           port: "3306",
+          username: "root",
           database: "coinsdo_deposit",
           table: "t_deposit_record",
           status: 1,
           createdAt: 1719553933000,
         },
       ],
+      formList: [
+        {
+          label: "Name",
+          model: "name",
+          type: "text",
+        },
+        {
+          label: "Host",
+          model: "host",
+          type: "text",
+        },
+        {
+          label: "Username",
+          model: "username",
+          type: "text",
+        },
+        {
+          label: "Password",
+          model: "password",
+          type: "text",
+        },
+        {
+          label: "Database",
+          model: "database",
+          type: "select",
+          option: [
+            {
+              label: "Database 1",
+              value: "database1",
+            },
+            {
+              label: "Database 2",
+              value: "database2",
+            },
+          ],
+        },
+        {
+          label: "Table",
+          model: "table",
+          type: "select",
+          option: [
+            {
+              label: "Table 1",
+              value: "table1",
+            },
+            {
+              label: "Table 2",
+              value: "table2",
+            },
+          ],
+        },
+      ],
+      formListDetails: ref({}),
+      editDialogStatus: ref(false),
     };
+  },
+  methods: {
+    goToAddPage() {
+      this.$router.push("/settings/database/add");
+    },
+    updateDialogStatus(status) {
+      this.editDialogStatus = status;
+    },
+    editRow(row) {
+      this.formListDetails = row;
+      this.editDialogStatus = true;
+    },
   },
 });
 </script>

@@ -36,21 +36,21 @@
               v-if="props.row.status === 1"
               color="warning"
               label="Disable"
-              @action:click="editRow(props.row)"
+              @action:click="disableRow(props.row)"
               style="width: 90px"
             />
             <UsualButton
               v-if="props.row.status === 0"
               color="positive"
-              label="Enabled"
-              @action:click="editRow(props.row)"
+              label="Enable"
+              @action:click="enableRow(props.row)"
               style="width: 90px"
             />
             <UsualButton
               color="negative"
               label="Remove"
               :outline="true"
-              @action:click="editRow(props.row)"
+              @action:click="deleteRow(props.row)"
               style="width: 90px"
             />
           </div>
@@ -78,7 +78,16 @@ export default defineComponent({
   },
   methods: {
     editRow(row) {
-      console.log("Edit row", row);
+      this.$emit("edit:row", row);
+    },
+    disableRow(row) {
+      this.$emit("disable:row", row);
+    },
+    enableRow(row) {
+      this.$emit("enable:row", row);
+    },
+    deleteRow(row) {
+      this.$emit("delete:row", row);
     },
   },
 });
