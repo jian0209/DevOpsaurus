@@ -1,5 +1,5 @@
 import { LOG_STATUS, ROLES, STATUS } from "./constants";
-import { formatObjectToTitleCase } from "./helper";
+import { formatObjectToTitleCase, formatTemplateVariables } from "./helper";
 import moment from "moment";
 
 export const generateColumn = (
@@ -66,4 +66,10 @@ export const generateColumn = (
     });
   }
   return columns;
+};
+
+export const generateSearchForm = (passedData = "") => {
+  console.log(passedData);
+  const formattedData = formatTemplateVariables(passedData);
+  return formattedData;
 };

@@ -1,6 +1,9 @@
 <template>
   <div>
-    <TitleContainer title="UPS Monitor" subtitle="View UPS Status" />
+    <TitleContainer
+      title="UPS Monitor"
+      subtitle="View UPS Status (Click on Row to View Details)"
+    />
     <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog

@@ -72,6 +72,13 @@ export default defineComponent({
             },
           ],
         },
+        {
+          label: "Parameter (WHERE)",
+          model: "parameter",
+          type: "textarea",
+          placeholder: "id IN {ids} AND / OR name = {name}",
+          hint: "* Use comma to split (AND LOGIC), Eg: id IN {variable1} AND name IN {variable2}",
+        },
       ],
       databaseDetails: {
         name: null,

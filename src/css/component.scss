@@ -55,3 +55,16 @@
 .dialog-object-value {
   flex: 7;
 }
+
+.table-dialog-search {
+  display: flex;
+  justify-content: center;
+}
+
+.table-dialog-search-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 20%;
+  margin: 0 20px;
+}

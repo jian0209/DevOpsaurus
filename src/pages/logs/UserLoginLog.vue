@@ -2,7 +2,7 @@
   <div>
     <TitleContainer
       title="User Login Log"
-      subtitle="View User Logged In (Save Only 1 week logs)"
+      subtitle="View User Logged In (Save Only 1 week logs) (Click on Row to View Details)"
     />
     <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent

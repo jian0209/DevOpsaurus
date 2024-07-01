@@ -44,3 +44,15 @@ export const formatObjectToTitleCase = (obj) => {
 
   return formattedObj;
 };
+
+export const formatTemplateVariables = (str) => {
+  const regex = /\{(\w+)\}/g;
+  const matches = [];
+  let match;
+
+  while ((match = regex.exec(str)) !== null) {
+    matches.push({ label: match[1], model: match[1], type: "text" });
+  }
+
+  return matches;
+};

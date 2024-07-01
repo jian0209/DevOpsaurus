@@ -8,7 +8,7 @@
       :no-data-label="loading ? 'Loading...' : noDataLabel"
       :no-results-label="loading ? 'Loading...' : 'No data found'"
       loading-label="Loading..."
-      card-class="table-data-cont"
+      :card-class="!$props.noClass ? 'table-data-cont' : null"
       separator="cell"
       @row-click="rowClick"
     >
@@ -102,6 +102,7 @@ export default defineComponent({
     loading: Boolean,
     rowKey: String,
     noDataLabel: String,
+    noClass: Boolean,
   },
   methods: {
     infoRow(row) {

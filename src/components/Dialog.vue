@@ -1,5 +1,9 @@
 <template>
-  <q-dialog v-model="$props.dialogStatus" backdrop-filter="brightness(60%)">
+  <q-dialog
+    v-model="$props.dialogStatus"
+    backdrop-filter="brightness(60%)"
+    :full-width="$props.isTableDialog"
+  >
     <q-card class="form-dialog-card">
       <q-toolbar class="form-dialog-card-title">
         <q-toolbar-title>
@@ -90,6 +94,50 @@
             />
           </div>
         </div>
+        <div v-else-if="$props.isTableDialog" class="form-dialog-card">
+          <div class="table-dialog-search">
+            <div
+              class="table-dialog-search-row"
+              v-for="(searchInput, searchIndex) in $props.searchInput"
+              :key="searchIndex"
+            >
+              <div class="form-input-name">{{ searchInput.label }}</div>
+              <q-input
+                v-if="
+                  searchInput.type === 'text' ||
+                  searchInput.type === 'password' ||
+                  searchInput.type === 'email' ||
+                  searchInput.type === 'textarea'
+                "
+                v-model="$props.searchFormList[searchInput.model]"
+                :type="searchInput.type"
+                class="usual-form-input"
+                color="secondary"
+                dense
+                outlined
+              />
+            </div>
+            <UsualButton
+              label="Search"
+              @action:click="searchData"
+              color="info"
+            />
+          </div>
+          <q-card-section>
+            <TableContainer
+              :rows="$props.dialogRows"
+              :columns="$props.dialogColumns"
+              noClass
+            />
+          </q-card-section>
+          <div class="add-btn-cont">
+            <UsualButton
+              label="Close"
+              @action:click="closeDialog"
+              color="info"
+            />
+          </div>
+        </div>
         <div v-else class="form-dialog-card">
           <q-toolbar class="usual-dialog-card">
             {{ $props.subtitle }}
@@ -119,12 +167,14 @@
 <script>
 import { defineComponent, ref, watch } from "vue";
 import UsualButton from "src/components/Button.vue";
+import TableContainer from "src/components/TableCont.vue";
 import "src/css/component.scss";
 
 export default defineComponent({
   name: "DialogComponent",
   components: {
     UsualButton,
+    TableContainer,
   },
   props: {
     dialogStatus: Boolean,
@@ -142,6 +192,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    isTableDialog: {
+      type: Boolean,
+      default: false,
+    },
+    dialogRows: Array,
+    dialogColumns: Array,
+    searchInput: Array,
+    searchFormList: Object,
   },
   methods: {
     submitEdit() {
@@ -150,6 +208,13 @@ export default defineComponent({
     },
     testConnection() {
       this.$emit("test:connection");
+    },
+    searchData() {
+      const parameter = {};
+      this.searchInput.forEach((item) => {
+        parameter[item.model] = this.searchFormList[item.model];
+      });
+      this.$emit("search:data", parameter);
     },
   },
   setup(props, { emit }) {
