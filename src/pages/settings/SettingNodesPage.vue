@@ -16,6 +16,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit Nodes"
@@ -23,6 +26,24 @@
       :formList="formList"
       :formListDetails="formListDetails"
       isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable Nodes"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable Nodes {${selectedRow}} Be Monitored`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable Nodes"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable Nodes {${selectedRow}} Be Monitored`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete Nodes"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete Nodes Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -172,6 +193,10 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -180,10 +205,25 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.deleteDialogStatus = true;
     },
   },
 });

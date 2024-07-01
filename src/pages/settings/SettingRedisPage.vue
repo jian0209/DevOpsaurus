@@ -16,6 +16,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit Redis"
@@ -23,6 +26,24 @@
       :formList="formList"
       :formListDetails="formListDetails"
       isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable Redis"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable Redis {${selectedRow}} Be View By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable Redis"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable Redis {${selectedRow}} Be View By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete Redis"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete Redis Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -161,6 +182,10 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -169,10 +194,25 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedRow = `${row.host}:${row.port}`;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedRow = `${row.host}:${row.port}`;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedRow = `${row.host}:${row.port}`;
+      this.deleteDialogStatus = true;
     },
   },
 });

@@ -16,6 +16,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit database"
@@ -24,6 +27,24 @@
       :formListDetails="formListDetails"
       testBtnTxt="Get Databases and Tables"
       isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable Database"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable Database {${selectedRow}} Be View or Edit By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable Database"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable Database {${selectedRow}} Be View or Edit By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete Database"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete Database Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -206,6 +227,10 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -214,10 +239,25 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedRow = row.name;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedRow = row.name;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedRow = row.name;
+      this.deleteDialogStatus = true;
     },
   },
 });

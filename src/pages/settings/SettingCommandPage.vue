@@ -16,6 +16,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit Command"
@@ -23,6 +26,24 @@
       :formList="formList"
       :formListDetails="formListDetails"
       isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable Command"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable Command {${selectedRow}} Be Execute By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable Command"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable Command {${selectedRow}} Be Execute By User`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete Command"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete Command Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -166,6 +187,10 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -174,10 +199,25 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedRow = row.name;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedRow = row.name;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedRow = row.name;
+      this.deleteDialogStatus = true;
     },
   },
 });

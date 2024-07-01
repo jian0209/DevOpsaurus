@@ -13,6 +13,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit UPS"
@@ -20,6 +23,24 @@
       :formList="formList"
       :formListDetails="formListDetails"
       isFormDialog
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Enable UPS"
+      :dialogStatus="enableDialogStatus"
+      :subtitle="`This Will Enable UPS {${selectedRow}} Be Monitored`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable User"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable UPS {${selectedRow}} Be Monitored`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete User"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete UPS Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -167,6 +188,10 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -175,10 +200,25 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedRow = row.name;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedRow = row.name;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedRow = row.name;
+      this.deleteDialogStatus = true;
     },
   },
 });

@@ -70,29 +70,25 @@
             />
           </div>
         </q-form>
-        <div v-else>
-          <div>
+        <div v-else class="form-dialog-card">
+          <q-toolbar class="usual-dialog-card">
             {{ $props.subtitle }}
-            <div class="add-btn-cont">
-              <UsualButton
-                v-if="$props.testBtnTxt"
-                :label="$props.testBtnTxt"
-                color="positive"
-                @action:click="testConnection"
-              />
-              <div v-if="$props.testBtnTxt" style="width: 20px" />
-              <UsualButton
-                label="Save"
-                @action:click="submitEdit"
-                color="info"
-              />
-              <div style="width: 20px" />
-              <UsualButton
-                label="Cancel"
-                @action:click="closeDialog"
-                color="info"
-              />
-            </div>
+          </q-toolbar>
+          <div class="add-btn-cont">
+            <UsualButton
+              v-if="$props.testBtnTxt"
+              :label="$props.testBtnTxt"
+              color="positive"
+              @action:click="testConnection"
+            />
+            <div v-if="$props.testBtnTxt" style="width: 20px" />
+            <UsualButton label="Save" @action:click="submitEdit" color="info" />
+            <div style="width: 20px" />
+            <UsualButton
+              label="Cancel"
+              @action:click="closeDialog"
+              color="info"
+            />
           </div>
         </div>
       </q-card-section>

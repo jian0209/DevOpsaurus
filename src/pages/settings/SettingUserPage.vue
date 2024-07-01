@@ -28,19 +28,19 @@
     <DialogComponent
       title="Enable User"
       :dialogStatus="enableDialogStatus"
-      :subtitle="`This Will Enable User {${selectedUser}} Log In`"
+      :subtitle="`This Will Enable User {${selectedRow}} Log In`"
       @update:dialogStatus="updateDialogStatus"
     />
     <DialogComponent
       title="Disable User"
       :dialogStatus="disableDialogStatus"
-      :subtitle="`This Will Disable User {${selectedUser}} Log In`"
+      :subtitle="`This Will Disable User {${selectedRow}} Log In`"
       @update:dialogStatus="updateDialogStatus"
     />
     <DialogComponent
       title="Delete User"
       :dialogStatus="deleteDialogStatus"
-      :subtitle="`This Will Delete User {${selectedUser}}`"
+      :subtitle="`This Will Delete User {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -227,7 +227,7 @@ export default defineComponent({
       enableDialogStatus: ref(false),
       disableDialogStatus: ref(false),
       deleteDialogStatus: ref(false),
-      selectedUser: ref(""),
+      selectedRow: ref(""),
     };
   },
   methods: {
@@ -249,15 +249,15 @@ export default defineComponent({
       this.editDialogStatus = true;
     },
     disableRow(row) {
-      this.selectedUser = row.username;
+      this.selectedRow = row.username;
       this.disableDialogStatus = true;
     },
     enableRow(row) {
-      this.selectedUser = row.username;
+      this.selectedRow = row.username;
       this.enableDialogStatus = true;
     },
     deleteRow(row) {
-      this.selectedUser = row.username;
+      this.selectedRow = row.username;
       this.deleteDialogStatus = true;
     },
   },
