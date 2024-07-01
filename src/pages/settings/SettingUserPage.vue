@@ -13,6 +13,9 @@
       :rows="dummyData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @disable:row="disableRow($event)"
+      @enable:row="enableRow($event)"
+      @delete:row="deleteRow($event)"
     />
     <DialogComponent
       title="Edit User"
@@ -25,7 +28,20 @@
     <DialogComponent
       title="Enable User"
       :dialogStatus="enableDialogStatus"
-      :subtitle="`This Will Enable User ${selectedUser} Log In`"
+      :subtitle="`This Will Enable User {${selectedUser}} Log In`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Disable User"
+      :dialogStatus="disableDialogStatus"
+      :subtitle="`This Will Disable User {${selectedUser}} Log In`"
+      @update:dialogStatus="updateDialogStatus"
+    />
+    <DialogComponent
+      title="Delete User"
+      :dialogStatus="deleteDialogStatus"
+      :subtitle="`This Will Delete User {${selectedUser}}`"
+      @update:dialogStatus="updateDialogStatus"
     />
   </div>
 </template>
@@ -208,6 +224,9 @@ export default defineComponent({
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
+      enableDialogStatus: ref(false),
+      disableDialogStatus: ref(false),
+      deleteDialogStatus: ref(false),
       selectedUser: ref(""),
     };
   },
@@ -217,6 +236,9 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.editDialogStatus = status;
+      this.enableDialogStatus = status;
+      this.disableDialogStatus = status;
+      this.deleteDialogStatus = status;
     },
     editRow(row) {
       row.role = {
@@ -225,6 +247,18 @@ export default defineComponent({
       };
       this.formListDetails = row;
       this.editDialogStatus = true;
+    },
+    disableRow(row) {
+      this.selectedUser = row.username;
+      this.disableDialogStatus = true;
+    },
+    enableRow(row) {
+      this.selectedUser = row.username;
+      this.enableDialogStatus = true;
+    },
+    deleteRow(row) {
+      this.selectedUser = row.username;
+      this.deleteDialogStatus = true;
     },
   },
 });

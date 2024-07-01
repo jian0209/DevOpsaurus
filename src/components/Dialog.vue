@@ -63,12 +63,36 @@
             <div v-if="$props.testBtnTxt" style="width: 20px" />
             <UsualButton label="Save" type="submit" color="info" />
             <div style="width: 20px" />
-            <UsualButton label="Cancel" @click="closeDialog" color="info" />
+            <UsualButton
+              label="Cancel"
+              @action:click="closeDialog"
+              color="info"
+            />
           </div>
         </q-form>
         <div v-else>
           <div>
             {{ $props.subtitle }}
+            <div class="add-btn-cont">
+              <UsualButton
+                v-if="$props.testBtnTxt"
+                :label="$props.testBtnTxt"
+                color="positive"
+                @action:click="testConnection"
+              />
+              <div v-if="$props.testBtnTxt" style="width: 20px" />
+              <UsualButton
+                label="Save"
+                @action:click="submitEdit"
+                color="info"
+              />
+              <div style="width: 20px" />
+              <UsualButton
+                label="Cancel"
+                @action:click="closeDialog"
+                color="info"
+              />
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -92,6 +116,7 @@ export default defineComponent({
     formListDetails: Object,
     testBtnTxt: String,
     title: String,
+    subtitle: String,
     isFormDialog: {
       type: Boolean,
       default: false,
