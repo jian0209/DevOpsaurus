@@ -11,10 +11,15 @@
       @refresh:row="refresh"
     />
     <DialogComponent
+      isExecuteDialog
       title="Command Information Details"
+      :subtitle="`${selectedRow.command}`"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
+      :executeInput="executeInput"
+      @execute:data="executeData"
+      :executeFormList="executeFormList"
     />
   </div>
 </template>
@@ -41,17 +46,19 @@ export default defineComponent({
         {
           id: 1,
           name: "Production",
-          database: "coinsdo_deposit",
-          table: "t_deposit_record",
-          parameter: "id IN {ids} AND name = {name}",
+          command:
+            "curl -X POST -H 'Content-Type: application/json' -d '{data}' http://localhost:8080/api/{id}",
+        },
+        {
+          id: 2,
+          name: "Production Test",
+          command: "curl http://localhost/api/v1/health",
         },
       ],
-      searchFormList: ref({}),
-      searchInput: ref([]),
+      executeFormList: ref({}),
+      executeInput: ref([]),
       infoDialogStatus: ref(false),
       selectedRow: ref({}),
-      dialogRows: ref([]),
-      dialogColumns: ref([]),
     };
   },
   methods: {
@@ -68,18 +75,16 @@ export default defineComponent({
       this.selectedRow.timeFetch = moment(row.timeFetch).format(
         "YYYY-MM-DD HH:mm:ss"
       );
-      this.searchInput = generateSearchForm(this.selectedRow.parameter);
-      this.searchInput.forEach((input) => {
-        this.searchFormList[input.model] = null;
+      this.executeInput = generateSearchForm(this.selectedRow.command);
+      this.executeInput.forEach((input) => {
+        this.executeFormList[input.model] = null;
       });
-      this.dialogColumns = generateColumn(this.dummyData);
-      this.dialogRows = this.dummyData;
       this.infoDialogStatus = true;
     },
     refresh(row) {
       console.log(row);
     },
-    searchData(data) {
+    executeData(data) {
       console.log(data);
     },
   },

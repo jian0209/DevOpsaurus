@@ -68,3 +68,23 @@
   width: 20%;
   margin: 0 20px;
 }
+
+.execute-dialog-card {
+  display: flex;
+  justify-content: center;
+}
+
+.execute-dialog-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 20%;
+  margin: 0 20px;
+  margin-bottom: 20px;
+}
+
+.execute-dialog-subtitle {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}

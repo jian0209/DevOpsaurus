@@ -138,6 +138,47 @@
             />
           </div>
         </div>
+        <div v-else-if="$props.isExecuteDialog" class="form-dialog-card">
+          <div class="execute-dialog-subtitle">
+            {{ $props.subtitle }}
+          </div>
+          <div class="execute-dialog-card">
+            <div
+              class="execute-dialog-row"
+              v-for="(executeItem, executeIndex) in $props.executeInput"
+              :key="executeIndex"
+            >
+              <div class="form-input-name">{{ executeItem.label }}</div>
+              <q-input
+                v-if="
+                  executeItem.type === 'text' ||
+                  executeItem.type === 'password' ||
+                  executeItem.type === 'email' ||
+                  executeItem.type === 'textarea'
+                "
+                v-model="$props.executeFormList[executeItem.model]"
+                :type="executeItem.type"
+                class="usual-form-input"
+                color="secondary"
+                dense
+                outlined
+              />
+            </div>
+          </div>
+          <div class="add-btn-cont">
+            <UsualButton
+              label="Execute"
+              @action:click="executeData"
+              color="info"
+            />
+            <div style="width: 20px" />
+            <UsualButton
+              label="Close"
+              @action:click="closeDialog"
+              color="info"
+            />
+          </div>
+        </div>
         <div v-else class="form-dialog-card">
           <q-toolbar class="usual-dialog-card">
             {{ $props.subtitle }}
@@ -196,10 +237,16 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    isExecuteDialog: {
+      type: Boolean,
+      default: false,
+    },
     dialogRows: Array,
     dialogColumns: Array,
     searchInput: Array,
     searchFormList: Object,
+    executeInput: Array,
+    executeFormList: Object,
   },
   methods: {
     submitEdit() {
@@ -215,6 +262,13 @@ export default defineComponent({
         parameter[item.model] = this.searchFormList[item.model];
       });
       this.$emit("search:data", parameter);
+    },
+    executeData() {
+      const parameter = {};
+      this.executeInput.forEach((item) => {
+        parameter[item.model] = this.executeFormList[item.model];
+      });
+      this.$emit("execute:data", parameter);
     },
   },
   setup(props, { emit }) {
