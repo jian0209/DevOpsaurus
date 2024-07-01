@@ -85,7 +85,10 @@ export default defineComponent({
       console.log(row);
     },
     executeData(data) {
-      console.log(data);
+      this.$q.notify({
+        message: `Execute "${this.selectedRow.command}" successfully!`,
+        type: "positive",
+      });
     },
   },
   created() {

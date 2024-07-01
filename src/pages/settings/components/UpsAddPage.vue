@@ -62,6 +62,10 @@ export default defineComponent({
   },
   methods: {
     add() {
+      this.$q.notify({
+        message: `Added ${this.upsDetails.name} successfully!`,
+        type: "positive",
+      });
       this.$router.push("/settings/ups");
     },
   },

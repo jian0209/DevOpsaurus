@@ -41,8 +41,12 @@ export default defineComponent({
     };
   },
   methods: {
-    saveTelegram() {
+    saveIntegration() {
       console.log(this.integrationDetails);
+      this.$q.notify({
+        message: `Configuration Saved!`,
+        type: "positive",
+      });
     },
   },
 });

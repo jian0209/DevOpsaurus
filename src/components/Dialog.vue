@@ -251,7 +251,7 @@ export default defineComponent({
   methods: {
     submitEdit() {
       this.closeDialog();
-      this.$emit("submit:edit");
+      this.$emit("submit:edit", this.formListDetails);
     },
     testConnection() {
       this.$emit("test:connection");

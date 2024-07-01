@@ -7,6 +7,7 @@
     :formList="formList"
     :formListDetails="upsDetails"
     @submit:add="saveEmail"
+    @test:connection="testEmail"
   />
 </template>
 
@@ -81,6 +82,17 @@ export default defineComponent({
   methods: {
     saveEmail() {
       console.log(this.upsDetails);
+      this.$q.notify({
+        message: `Configuration Saved!`,
+        type: "positive",
+      });
+    },
+    testEmail() {
+      console.log(this.upsDetails);
+      this.$q.notify({
+        message: `Email Sent!`,
+        type: "positive",
+      });
     },
   },
 });

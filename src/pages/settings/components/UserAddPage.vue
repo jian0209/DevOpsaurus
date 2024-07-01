@@ -76,6 +76,10 @@ export default defineComponent({
   },
   methods: {
     add() {
+      this.$q.notify({
+        message: `Added ${this.userDetails.username} successfully!`,
+        type: "positive",
+      });
       this.$router.push("/settings/user");
     },
   },

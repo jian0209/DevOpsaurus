@@ -69,7 +69,6 @@ export const generateColumn = (
 };
 
 export const generateSearchForm = (passedData = "") => {
-  console.log(passedData);
   const formattedData = formatTemplateVariables(passedData);
   return formattedData;
 };

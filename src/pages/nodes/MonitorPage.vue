@@ -66,6 +66,16 @@ export default defineComponent({
     },
     refresh(row) {
       console.log(row);
+      this.$q.notify({
+        message: `Refresh ${row.name} successfully!`,
+        type: "positive",
+      });
+      this.dummyData = this.dummyData.map((item) => {
+        if (item.id === row.id) {
+          item.timeFetch = Date.now();
+        }
+        return item;
+      });
     },
   },
   created() {

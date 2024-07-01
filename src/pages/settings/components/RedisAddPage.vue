@@ -59,6 +59,10 @@ export default defineComponent({
   },
   methods: {
     add() {
+      this.$q.notify({
+        message: `Added ${this.redisDetails.host} successfully!`,
+        type: "positive",
+      });
       this.$router.push("/settings/redis");
     },
   },

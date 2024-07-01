@@ -7,6 +7,7 @@
     :formList="formList"
     :formListDetails="tgDetails"
     @submit:add="saveTelegram"
+    @test:connection="testTelegram"
   />
 </template>
 
@@ -51,6 +52,17 @@ export default defineComponent({
   methods: {
     saveTelegram() {
       console.log(this.tgDetails);
+      this.$q.notify({
+        message: `Configuration Saved!`,
+        type: "positive",
+      });
+    },
+    testTelegram() {
+      console.log(this.tgDetails);
+      this.$q.notify({
+        message: `Telegram Message Sent!`,
+        type: "positive",
+      });
     },
   },
 });

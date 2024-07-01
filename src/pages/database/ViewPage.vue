@@ -86,7 +86,17 @@ export default defineComponent({
       console.log(row);
     },
     searchData(data) {
-      console.log(data);
+      this.dialogRows.push({
+        id: this.dialogRows.length + 1,
+        name: data.name,
+        database: data.database,
+        table: data.table,
+        parameter: data.parameter,
+      });
+      this.$q.notify({
+        message: "Data Searched Successfully!",
+        type: "positive",
+      });
     },
   },
   created() {

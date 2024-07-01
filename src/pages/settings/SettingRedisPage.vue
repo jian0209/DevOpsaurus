@@ -171,6 +171,31 @@ export default defineComponent({
       ).format("YYYY-MM-DD HH:mm:ss");
       this.infoDialogStatus = true;
     },
+    submitEdit(data) {
+      console.log(data);
+      this.$q.notify({
+        message: `Edit "${data.username}" successfully!`,
+        type: "positive",
+      });
+    },
+    submitEnable() {
+      this.$q.notify({
+        message: `Enable "${this.selectedRow}" successfully!`,
+        type: "positive",
+      });
+    },
+    submitDisable() {
+      this.$q.notify({
+        message: `Disable "${this.selectedRow}" successfully!`,
+        type: "positive",
+      });
+    },
+    submitDelete() {
+      this.$q.notify({
+        message: `Delete "${this.selectedRow}" successfully!`,
+        type: "positive",
+      });
+    },
   },
   created() {
     this.initData();

@@ -65,6 +65,10 @@ export default defineComponent({
   },
   methods: {
     add() {
+      this.$q.notify({
+        message: `Added ${this.commandDetails.name} successfully!`,
+        type: "positive",
+      });
       this.$router.push("/settings/command");
     },
   },

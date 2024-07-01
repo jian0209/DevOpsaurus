@@ -59,6 +59,10 @@ export default defineComponent({
   },
   methods: {
     add() {
+      this.$q.notify({
+        message: `Added ${this.nodesDetails.name} successfully!`,
+        type: "positive",
+      });
       this.$router.push("/settings/nodes");
     },
   },
