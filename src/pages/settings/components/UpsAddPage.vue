@@ -48,6 +48,7 @@ export default defineComponent({
           type: "textarea",
           placeholder:
             'e.g. {"key": string, "key": int, "key": bool, "key": {"key": string}}',
+          hint: "* Will use JSON.stringify() to format your input.",
         },
       ],
       upsDetails: {

@@ -16,6 +16,7 @@
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
+      @info:row="infoRow($event)"
     />
     <DialogComponent
       title="Edit User"
@@ -43,6 +44,13 @@
       :subtitle="`This Will Delete User {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
+    <DialogComponent
+      isInfoDialog
+      title="User Information Details"
+      :dialogStatus="infoDialogStatus"
+      :formListDetails="selectedInfoRow"
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
@@ -53,8 +61,9 @@ import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { ROLES, ROLES_GROUP, STATUS } from "src/utils/constants.js";
-import moment from "moment";
+import { generateColumn } from "src/utils/util.js";
 import "src/css/settingsScreen.scss";
+import moment from "moment";
 
 export default defineComponent({
   name: "SettingUserPage",
@@ -66,87 +75,7 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        {
-          name: "id",
-          required: true,
-          label: "ID",
-          align: "left",
-          field: (row) => row.id,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "username",
-          required: true,
-          label: "Username",
-          align: "left",
-          field: (row) => row.username,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "email",
-          required: true,
-          label: "Email",
-          align: "left",
-          field: (row) => row.email,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "group",
-          required: true,
-          label: "Group",
-          align: "left",
-          field: (row) => row.group,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "role",
-          required: true,
-          label: "Role",
-          align: "left",
-          field: (row) => row.role,
-          format: (val) => `${ROLES[val] || val.label}` || "Unknown",
-          sortable: true,
-        },
-        {
-          name: "createdAt",
-          required: true,
-          label: "Created At",
-          align: "left",
-          field: (row) => row.createdAt,
-          format: (val) => moment(val).format("YYYY-MM-DD HH:mm:ss"),
-          sortable: true,
-        },
-        {
-          name: "mfaStatus",
-          required: true,
-          label: "MFA",
-          align: "left",
-          field: (row) => row.mfaStatus,
-          format: (val) => STATUS[val] || "Unknown",
-          sortable: true,
-        },
-        {
-          name: "status",
-          required: true,
-          label: "Status",
-          align: "left",
-          field: (row) => row.status,
-          format: (val) => STATUS[val] || "Unknown",
-          sortable: true,
-        },
-        {
-          name: "operate",
-          field: "operate",
-          label: "Operate",
-          align: "right",
-          sortable: false,
-        },
-      ],
+      columns: ref([]),
       dummyData: [
         {
           id: 1,
@@ -227,10 +156,15 @@ export default defineComponent({
       enableDialogStatus: ref(false),
       disableDialogStatus: ref(false),
       deleteDialogStatus: ref(false),
+      infoDialogStatus: ref(false),
+      selectedInfoRow: ref({}),
       selectedRow: ref(""),
     };
   },
   methods: {
+    initData() {
+      this.columns = generateColumn(this.dummyData, false, true, true);
+    },
     goToAddPage() {
       this.$router.push("/settings/user/add");
     },
@@ -239,13 +173,16 @@ export default defineComponent({
       this.enableDialogStatus = status;
       this.disableDialogStatus = status;
       this.deleteDialogStatus = status;
+      this.infoDialogStatus = status;
     },
     editRow(row) {
-      row.role = {
+      for (const key in row) {
+        this.formListDetails[key] = row[key];
+      }
+      this.formListDetails.role = {
         label: ROLES[row.role] || row.role.label,
         value: row.role || row.role.value,
       };
-      this.formListDetails = row;
       this.editDialogStatus = true;
     },
     disableRow(row) {
@@ -260,6 +197,21 @@ export default defineComponent({
       this.selectedRow = row.username;
       this.deleteDialogStatus = true;
     },
+    infoRow(row) {
+      for (const key in row) {
+        this.selectedInfoRow[key] = row[key];
+      }
+      this.selectedInfoRow.role = ROLES[this.selectedInfoRow.role];
+      this.selectedInfoRow.mfaStatus = STATUS[this.selectedInfoRow.mfaStatus];
+      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
+      this.selectedInfoRow.createdAt = moment(
+        this.selectedInfoRow.createdAt
+      ).format("YYYY-MM-DD HH:mm:ss");
+      this.infoDialogStatus = true;
+    },
+  },
+  created() {
+    this.initData();
   },
 });
 </script>

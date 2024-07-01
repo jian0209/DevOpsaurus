@@ -92,6 +92,22 @@ const routes = [
     ],
   },
   {
+    path: "/log",
+    component: () => import("layouts/UserLayout.vue"),
+    children: [
+      {
+        path: "user",
+        name: "log-user",
+        component: () => import("pages/logs/UserLoginLog.vue"),
+      },
+      {
+        path: "system",
+        name: "log-system",
+        component: () => import("pages/logs/SystemLog.vue"),
+      },
+    ],
+  },
+  {
     path: "/settings",
     component: () => import("layouts/UserLayout.vue"),
     children: [
@@ -157,9 +173,19 @@ const routes = [
         component: () => import("pages/settings/components/CommandAddPage.vue"),
       },
       {
+        path: "integration",
+        name: "settings-integration",
+        component: () => import("pages/settings/SettingIntegrationPage.vue"),
+      },
+      {
         path: "mail",
         name: "settings-mail",
         component: () => import("pages/settings/SettingMailPage.vue"),
+      },
+      {
+        path: "telegram",
+        name: "settings-telegram",
+        component: () => import("pages/settings/SettingTelegramPage.vue"),
       },
     ],
   },

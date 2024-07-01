@@ -37,6 +37,11 @@ export const STATUS = {
   [DISABLED]: "Disabled",
 };
 
+export const LOG_STATUS = {
+  [ENABLED]: "Success",
+  [DISABLED]: "Failed",
+};
+
 export const CRYPTO_CURRENCY_GROUP = [
   {
     label: "eth",

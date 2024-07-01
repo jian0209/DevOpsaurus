@@ -19,12 +19,14 @@
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
+      @info:row="infoRow($event)"
     />
     <DialogComponent
       title="Edit Command"
       :dialogStatus="editDialogStatus"
       :formList="formList"
       :formListDetails="formListDetails"
+      testBtnTxt="Test SSH Connection"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
     />
@@ -46,6 +48,13 @@
       :subtitle="`This Will Delete Command Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
+    <DialogComponent
+      isInfoDialog
+      title="Command Information Details"
+      :dialogStatus="infoDialogStatus"
+      :formListDetails="selectedInfoRow"
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
@@ -55,6 +64,7 @@ import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
+import { generateColumn } from "src/utils/util.js";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
@@ -69,78 +79,7 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        {
-          name: "id",
-          required: true,
-          label: "ID",
-          align: "left",
-          field: (row) => row.id,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "name",
-          required: true,
-          label: "Name",
-          align: "left",
-          field: (row) => row.name,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "host",
-          required: true,
-          label: "Host",
-          align: "left",
-          field: (row) => row.host,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "sshPort",
-          required: true,
-          label: "SSH Port",
-          align: "left",
-          field: (row) => row.sshPort,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "command",
-          required: true,
-          label: "Command",
-          align: "left",
-          field: (row) => row.command,
-          format: (val) => `${val.substring(0, 20)}...`,
-          sortable: true,
-        },
-        {
-          name: "createdAt",
-          required: true,
-          label: "Created At",
-          align: "left",
-          field: (row) => row.createdAt,
-          format: (val) => moment(val).format("YYYY-MM-DD HH:mm:ss"),
-          sortable: true,
-        },
-        {
-          name: "status",
-          required: true,
-          label: "Status",
-          align: "left",
-          field: (row) => row.status,
-          format: (val) => STATUS[val] || "Unknown",
-          sortable: true,
-        },
-        {
-          name: "operate",
-          field: "operate",
-          label: "Operate",
-          align: "right",
-          sortable: false,
-        },
-      ],
+      columns: ref([]),
       dummyData: [
         {
           id: 1,
@@ -173,6 +112,7 @@ export default defineComponent({
           label: "SSH Key",
           model: "sshKey",
           type: "textarea",
+          hint: "* SSH Key Should Be In PEM Format",
         },
         {
           label: "SSH Port",
@@ -183,6 +123,7 @@ export default defineComponent({
           label: "Command",
           model: "command",
           type: "text",
+          hint: "* Variable Eg: curl http://localhost:8080/{variable} {variable2}",
         },
       ],
       formListDetails: ref({}),
@@ -190,10 +131,15 @@ export default defineComponent({
       enableDialogStatus: ref(false),
       disableDialogStatus: ref(false),
       deleteDialogStatus: ref(false),
+      infoDialogStatus: ref(false),
+      selectedInfoRow: ref({}),
       selectedRow: ref(""),
     };
   },
   methods: {
+    initData() {
+      this.columns = generateColumn(this.dummyData, false, true, true);
+    },
     goToAddPage() {
       this.$router.push("/settings/command/add");
     },
@@ -202,9 +148,12 @@ export default defineComponent({
       this.enableDialogStatus = status;
       this.disableDialogStatus = status;
       this.deleteDialogStatus = status;
+      this.infoDialogStatus = status;
     },
     editRow(row) {
-      this.formListDetails = row;
+      for (const key in row) {
+        this.formListDetails[key] = row[key];
+      }
       this.editDialogStatus = true;
     },
     disableRow(row) {
@@ -219,6 +168,19 @@ export default defineComponent({
       this.selectedRow = row.name;
       this.deleteDialogStatus = true;
     },
+    infoRow(row) {
+      for (const key in row) {
+        this.selectedInfoRow[key] = row[key];
+      }
+      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
+      this.selectedInfoRow.createdAt = moment(
+        this.selectedInfoRow.createdAt
+      ).format("YYYY-MM-DD HH:mm:ss");
+      this.infoDialogStatus = true;
+    },
+  },
+  created() {
+    this.initData();
   },
 });
 </script>

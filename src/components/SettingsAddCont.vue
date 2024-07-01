@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TitleContainer :title="$props.title" />
+    <TitleContainer :title="$props.title" :subtitle="$props.subtitle" />
     <q-form @submit="submitAdd" class="form-main-cont">
       <div
         class="form-input-cont"
@@ -22,6 +22,7 @@
           :placeholder="item.placeholder"
           dense
           outlined
+          :hint="item.hint"
         />
         <q-select
           v-if="item.type === 'select'"
@@ -39,6 +40,17 @@
             v-model="$props.formListDetails[item.model]"
             :val="radioItem.value"
             :label="radioItem.label"
+            color="secondary"
+          />
+        </div>
+        <div
+          v-if="item.type === 'checkbox'"
+          class="usual-form-input"
+          style="margin-left: -10px"
+        >
+          <q-checkbox
+            v-model="$props.formListDetails[item.model]"
+            :val="item.value"
             color="secondary"
           />
         </div>
@@ -70,6 +82,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    subtitle: {
+      type: String,
+      default: null,
+    },
     addBtnTxt: {
       type: String,
       required: true,
@@ -86,6 +102,7 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    hint: String,
   },
   components: {
     TitleContainer,

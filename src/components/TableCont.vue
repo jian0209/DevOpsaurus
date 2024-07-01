@@ -10,6 +10,7 @@
       loading-label="Loading..."
       card-class="table-data-cont"
       separator="cell"
+      @row-click="rowClick"
     >
       <template v-slot:header="props">
         <q-tr :props="props">
@@ -88,6 +89,9 @@ export default defineComponent({
     },
     deleteRow(row) {
       this.$emit("delete:row", row);
+    },
+    rowClick(event, row, index) {
+      this.$emit("info:row", row);
     },
   },
 });

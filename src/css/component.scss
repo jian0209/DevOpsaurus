@@ -42,3 +42,16 @@
   margin: 0;
   padding: 0 20px;
 }
+
+.dialog-info-card {
+  display: flex;
+  margin: 20px 0;
+}
+
+.dialog-object-key {
+  flex: 3;
+}
+
+.dialog-object-value {
+  flex: 7;
+}

@@ -32,6 +32,7 @@
               :placeholder="item.placeholder"
               dense
               outlined
+              :hint="item.hint"
             />
             <q-select
               v-if="item.type === 'select'"
@@ -70,6 +71,25 @@
             />
           </div>
         </q-form>
+        <div v-else-if="$props.isInfoDialog" class="form-dialog-card">
+          <q-card-section>
+            <div
+              v-for="(val, key) of $props.formListDetails"
+              :key="key"
+              class="dialog-info-card"
+            >
+              <div class="dialog-object-key">{{ key }}</div>
+              <div class="dialog-object-value">{{ val }}</div>
+            </div>
+          </q-card-section>
+          <div class="add-btn-cont">
+            <UsualButton
+              label="Close"
+              @action:click="closeDialog"
+              color="info"
+            />
+          </div>
+        </div>
         <div v-else class="form-dialog-card">
           <q-toolbar class="usual-dialog-card">
             {{ $props.subtitle }}
@@ -114,6 +134,11 @@ export default defineComponent({
     title: String,
     subtitle: String,
     isFormDialog: {
+      type: Boolean,
+      default: false,
+    },
+    hint: String,
+    isInfoDialog: {
       type: Boolean,
       default: false,
     },

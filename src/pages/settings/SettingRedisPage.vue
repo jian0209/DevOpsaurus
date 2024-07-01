@@ -19,12 +19,14 @@
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
+      @info:row="infoRow($event)"
     />
     <DialogComponent
       title="Edit Redis"
       :dialogStatus="editDialogStatus"
       :formList="formList"
       :formListDetails="formListDetails"
+      testBtnTxt="Test Redis Connection"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
     />
@@ -46,6 +48,13 @@
       :subtitle="`This Will Delete Redis Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
     />
+    <DialogComponent
+      isInfoDialog
+      title="Redis Information Details"
+      :dialogStatus="infoDialogStatus"
+      :formListDetails="selectedInfoRow"
+      @update:dialogStatus="updateDialogStatus"
+    />
   </div>
 </template>
 
@@ -56,6 +65,7 @@ import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
+import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
 
@@ -69,78 +79,7 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        {
-          name: "id",
-          required: true,
-          label: "ID",
-          align: "left",
-          field: (row) => row.id,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "host",
-          required: true,
-          label: "Host",
-          align: "left",
-          field: (row) => row.host,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "port",
-          required: true,
-          label: "Port",
-          align: "left",
-          field: (row) => row.port,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "database",
-          required: true,
-          label: "Database",
-          align: "left",
-          field: (row) => row.database,
-          format: (val) => `${val}`,
-          sortable: true,
-        },
-        {
-          name: "get",
-          required: true,
-          label: "Get",
-          align: "left",
-          field: (row) => row.get,
-          format: (val) => `${val.substring(0, 20)}...`,
-          sortable: true,
-        },
-        {
-          name: "createdAt",
-          required: true,
-          label: "Created At",
-          align: "left",
-          field: (row) => row.createdAt,
-          format: (val) => moment(val).format("YYYY-MM-DD HH:mm:ss"),
-          sortable: true,
-        },
-        {
-          name: "status",
-          required: true,
-          label: "Status",
-          align: "left",
-          field: (row) => row.status,
-          format: (val) => STATUS[val] || "Unknown",
-          sortable: true,
-        },
-        {
-          name: "operate",
-          field: "operate",
-          label: "Operate",
-          align: "right",
-          sortable: false,
-        },
-      ],
+      columns: ref([]),
       dummyData: [
         {
           id: 1,
@@ -185,10 +124,15 @@ export default defineComponent({
       enableDialogStatus: ref(false),
       disableDialogStatus: ref(false),
       deleteDialogStatus: ref(false),
+      infoDialogStatus: ref(false),
+      selectedInfoRow: ref({}),
       selectedRow: ref(""),
     };
   },
   methods: {
+    initData() {
+      this.columns = generateColumn(this.dummyData, false, true, true);
+    },
     goToAddPage() {
       this.$router.push("/settings/redis/add");
     },
@@ -197,9 +141,12 @@ export default defineComponent({
       this.enableDialogStatus = status;
       this.disableDialogStatus = status;
       this.deleteDialogStatus = status;
+      this.infoDialogStatus = status;
     },
     editRow(row) {
-      this.formListDetails = row;
+      for (const key in row) {
+        this.formListDetails[key] = row[key];
+      }
       this.editDialogStatus = true;
     },
     disableRow(row) {
@@ -214,6 +161,19 @@ export default defineComponent({
       this.selectedRow = `${row.host}:${row.port}`;
       this.deleteDialogStatus = true;
     },
+    infoRow(row) {
+      for (const key in row) {
+        this.selectedInfoRow[key] = row[key];
+      }
+      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
+      this.selectedInfoRow.createdAt = moment(
+        this.selectedInfoRow.createdAt
+      ).format("YYYY-MM-DD HH:mm:ss");
+      this.infoDialogStatus = true;
+    },
+  },
+  created() {
+    this.initData();
   },
 });
 </script>
