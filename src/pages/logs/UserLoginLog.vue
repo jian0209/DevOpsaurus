@@ -1,13 +1,13 @@
 <template>
   <div>
     <TitleContainer
-      title="User Login Log"
-      subtitle="View User Logged In (Save Only 1 week logs) (Click on Row to View Details)"
+      :title="$t('logsPage.userLogin.title')"
+      :subtitle="$t('logsPage.userLogin.subtitle')"
     />
     <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
-      title="User Login Information Details"
+      :title="$t('logsPage.userLogin.infoDialog.title')"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
@@ -21,6 +21,7 @@ import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { LOG_STATUS } from "src/utils/constants.js";
+import { formatObjectToTitleCase } from "src/utils/helper.js";
 import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
 
@@ -59,13 +60,15 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedRow[key] = row[key];
+      const tempSelectedRow = formatObjectToTitleCase(row);
+      for (const key in tempSelectedRow) {
+        this.selectedRow[tempSelectedRow[key].formattedKey] =
+          tempSelectedRow[key].value;
       }
-      this.selectedRow.lastLoginTime = moment(row.lastLoginTime).format(
+      this.selectedRow["Last Login Time"] = moment(row.lastLoginTime).format(
         "YYYY-MM-DD HH:mm:ss"
       );
-      this.selectedRow.status = LOG_STATUS[row.status];
+      this.selectedRow["Status"] = LOG_STATUS[row.status];
       this.infoDialogStatus = true;
     },
   },

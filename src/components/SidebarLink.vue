@@ -46,6 +46,7 @@
 
 <script>
 import { defineComponent } from "vue";
+import { useUserStore } from "src/stores/user";
 import "src/css/component.scss";
 
 export default defineComponent({
@@ -87,8 +88,22 @@ export default defineComponent({
       type: Array,
     },
   },
+  data() {
+    return {
+      userStore: useUserStore(),
+    };
+  },
   methods: {
     goTo(route, name) {
+      if (name === "Logout") {
+        this.userStore.logout();
+        this.$router.push({ path: "/login" });
+        this.$q.notify({
+          message: "Logout successfully!",
+          type: "positive",
+        });
+        return;
+      }
       if (route) {
         this.$router.push({ path: route });
         this.$emit("update:activeLink", name);

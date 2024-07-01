@@ -1,5 +1,5 @@
 <template>
-  <h1>UNDER CONSTRUCTION!</h1>
+  <h1>{{ $t("underConstruction") }}</h1>
 </template>
 
 <script>

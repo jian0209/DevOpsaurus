@@ -1,24 +1,23 @@
 import { defineStore } from "pinia";
-import { getToken, removeToken } from "src/utils/auth";
+import { setToken, getToken, removeToken, getLanguage } from "src/utils/auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    token: getToken() || "asd",
+    token: getToken(),
     userInfo: null,
+    language: getLanguage() || "en-US",
   }),
 
-  getters: {
-    upperCaseName(state) {
-      return state.name.toUpperCase();
-    },
-  },
+  getters: {},
 
   actions: {
-    login(token) {
+    login(token, userInfo) {
       this.token = token;
+      this.userInfo = userInfo;
+      setToken(token);
     },
     logout() {
-      this.token = "";
+      this.token = null;
       this.userInfo = null;
       removeToken();
     },

@@ -1,8 +1,8 @@
 <template>
   <div>
     <TitleContainer
-      title="Command Page"
-      subtitle="Execute Command (Click on Row to View Details)"
+      :title="$t('commandPage.title')"
+      :subtitle="$t('commandPage.subtitle')"
     />
     <TableContainer
       :rows="dummyData"
@@ -12,7 +12,7 @@
     />
     <DialogComponent
       isExecuteDialog
-      title="Command Information Details"
+      :title="$t('commandPage.executeDialog.title')"
       :subtitle="`${selectedRow.command}`"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
@@ -86,9 +86,12 @@ export default defineComponent({
     },
     executeData(data) {
       this.$q.notify({
-        message: `Execute "${this.selectedRow.command}" successfully!`,
+        message: this.$t("dialog.executeSuccess", {
+          command: this.selectedRow.name,
+        }),
         type: "positive",
       });
+      this.infoDialogStatus = false;
     },
   },
   created() {

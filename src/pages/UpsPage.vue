@@ -1,13 +1,13 @@
 <template>
   <div>
     <TitleContainer
-      title="UPS Monitor"
-      subtitle="View UPS Status (Click on Row to View Details)"
+      :title="$t('upsPage.title')"
+      :subtitle="$t('upsPage.subtitle')"
     />
     <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
-      title="UPS Information Details"
+      :title="$t('upsPage.viewDialog.title')"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
@@ -21,6 +21,7 @@ import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { generateColumn } from "src/utils/util.js";
+import { formatObjectToTitleCase } from "src/utils/helper.js";
 import moment from "moment";
 
 export default defineComponent({
@@ -56,10 +57,12 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedRow[key] = row[key];
+      const tempSelectedRow = formatObjectToTitleCase(row);
+      for (const key in tempSelectedRow) {
+        this.selectedRow[tempSelectedRow[key].formattedKey] =
+          tempSelectedRow[key].value;
       }
-      this.selectedRow.timeFetch = moment(row.timeFetch).format(
+      this.selectedRow["Time Fetch"] = moment(row.timeFetch).format(
         "YYYY-MM-DD HH:mm:ss"
       );
       this.infoDialogStatus = true;

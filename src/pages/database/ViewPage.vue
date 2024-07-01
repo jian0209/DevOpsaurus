@@ -1,8 +1,8 @@
 <template>
   <div>
     <TitleContainer
-      title="View Database Data"
-      subtitle="Select Database and Table to View Data (Click on Row to View Details)"
+      :title="$t('databasePage.view.title')"
+      :subtitle="$t('databasePage.view.subtitle')"
     />
     <TableContainer
       :rows="dummyData"
@@ -12,7 +12,7 @@
     />
     <DialogComponent
       isTableDialog
-      title="Node Information Details"
+      :title="$t('databasePage.view.dialog.title')"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
