@@ -1,7 +1,7 @@
 <template>
   <div>
     <TitleContainer title="UPS Monitor" subtitle="View UPS Status" />
-    <TableContainer :rows="dummyData" :columns="columns" @info:row="infoRow" />
+    <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
       title="UPS Information Details"
@@ -21,7 +21,7 @@ import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
 
 export default defineComponent({
-  name: "SystemLog",
+  name: "UpsMonitorPage",
   components: {
     TitleContainer,
     TableContainer,

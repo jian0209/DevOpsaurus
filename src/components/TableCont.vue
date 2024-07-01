@@ -28,6 +28,13 @@
         <q-td :props="props">
           <div class="q-gutter-sm">
             <UsualButton
+              color="positive"
+              label="Info"
+              @action:click="infoRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+            <UsualButton
               color="info"
               label="Edit"
               @action:click="editRow(props.row)"
@@ -57,6 +64,25 @@
           </div>
         </q-td>
       </template>
+      <template v-slot:body-cell-refresh="props">
+        <q-td :props="props">
+          <div class="q-gutter-sm">
+            <UsualButton
+              color="positive"
+              label="Info"
+              @action:click="infoRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+            <UsualButton
+              color="info"
+              label="Refresh"
+              @action:click="refreshRow(props.row)"
+              style="width: 90px"
+            />
+          </div>
+        </q-td>
+      </template>
     </q-table>
   </div>
 </template>
@@ -78,6 +104,9 @@ export default defineComponent({
     noDataLabel: String,
   },
   methods: {
+    infoRow(row) {
+      this.$emit("info:row", row);
+    },
     editRow(row) {
       this.$emit("edit:row", row);
     },
@@ -90,8 +119,11 @@ export default defineComponent({
     deleteRow(row) {
       this.$emit("delete:row", row);
     },
+    refreshRow(row) {
+      this.$emit("refresh:row", row);
+    },
     rowClick(event, row, index) {
-      this.$emit("info:row", row);
+      this.$emit("click:row", row);
     },
   },
 });

@@ -3,10 +3,11 @@ import { formatObjectToTitleCase } from "./helper";
 import moment from "moment";
 
 export const generateColumn = (
-  passedData,
+  passedData = [],
   isLog = false,
   isSetting = false,
   isOperate = false,
+  isRefresh = false,
 ) => {
   const columns = [];
 
@@ -52,6 +53,15 @@ export const generateColumn = (
       field: "operate",
       label: "Operate",
       align: "right",
+      sortable: false,
+    });
+  }
+  if (isRefresh) {
+    columns.push({
+      name: "refresh",
+      field: "refresh",
+      label: "",
+      align: "center",
       sortable: false,
     });
   }

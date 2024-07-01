@@ -4,7 +4,7 @@
       title="User Login Log"
       subtitle="View User Logged In (Save Only 1 week logs)"
     />
-    <TableContainer :rows="dummyData" :columns="columns" @info:row="infoRow" />
+    <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
       title="User Login Information Details"
