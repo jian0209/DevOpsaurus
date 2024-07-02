@@ -84,6 +84,8 @@ export default defineComponent({
           id: 1,
           name: "ETH - Tung Ann",
           groupName: "ETH",
+          groupUrl:
+            "https://mainnet.coinsdo.com/monitor/nodes/list?network=mainnet",
           getUrl:
             "https://mainnet.coinsdo.com/monitor/nodes/check?network=mainnet&id=1",
           targetUrl: "http://203.117.22.213:10001/eth-achavie",
@@ -94,6 +96,8 @@ export default defineComponent({
           id: 2,
           name: "ETH - International Plaza",
           groupName: "ETH",
+          groupUrl:
+            "https://mainnet.coinsdo.com/monitor/nodes/list?network=mainnet",
           getUrl:
             "https://mainnet.coinsdo.com/monitor/nodes/check?network=mainnet&id=1",
           targetUrl: "http://122.11.149.168:10001/eth-achavie",
@@ -112,6 +116,11 @@ export default defineComponent({
           model: "groupName",
           type: "select",
           option: CRYPTO_CURRENCY_GROUP,
+        },
+        {
+          label: "Group URL",
+          model: "groupUrl",
+          type: "text",
         },
         {
           label: "Get URL",

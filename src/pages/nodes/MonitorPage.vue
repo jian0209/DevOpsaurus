@@ -26,7 +26,6 @@ import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { generateColumn } from "src/utils/util.js";
-import { formatObjectToTitleCase } from "src/utils/helper.js";
 import moment from "moment";
 
 export default defineComponent({
@@ -60,10 +59,9 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     infoRow(row) {
-      const tempSelectedRow = formatObjectToTitleCase(row);
-      for (const key in tempSelectedRow) {
-        this.selectedRow[tempSelectedRow[key].formattedKey] =
-          tempSelectedRow[key].value;
+      for (const key in row) {
+        const keyName = this.$t(`table.column.${key}`);
+        this.selectedRow[keyName] = row[key];
       }
       this.selectedRow["Time Fetch"] = moment(row.timeFetch).format(
         "YYYY-MM-DD HH:mm:ss"

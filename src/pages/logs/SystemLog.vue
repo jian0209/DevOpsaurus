@@ -1,13 +1,13 @@
 <template>
   <div>
     <TitleContainer
-      title="System Log"
-      subtitle="View System Logs (Save Only 1 week logs) (Click on Row to View Details)"
+      :title="$t('logsPage.system.title')"
+      :subtitle="$t('logsPage.system.subtitle')"
     />
     <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
-      title="User Login Information Details"
+      :title="$t('logsPage.system.infoDialog.title')"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
@@ -20,8 +20,8 @@ import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
+import { generateColumn, generateDialogDetails } from "src/utils/util.js";
 import { ROLES } from "src/utils/constants.js";
-import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
 
 export default defineComponent({
@@ -57,13 +57,15 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedRow[key] = row[key];
+      const tempSelectedRow = generateDialogDetails(row);
+      for (const key in tempSelectedRow) {
+        this.selectedRow[tempSelectedRow[key].formattedKey] =
+          tempSelectedRow[key].value;
       }
-      this.selectedRow.createdAt = moment(row.createdAt).format(
+      this.selectedRow["Created At"] = moment(row.createdAt).format(
         "YYYY-MM-DD HH:mm:ss"
       );
-      this.selectedRow.role = ROLES[row.role];
+      this.selectedRow["Role"] = ROLES[row.role];
       this.infoDialogStatus = true;
     },
   },

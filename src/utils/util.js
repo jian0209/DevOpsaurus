@@ -18,6 +18,7 @@ export const generateColumn = (
   }
 
   const formattedData = formatObjectToTitleCase(data);
+
   for (const key in formattedData) {
     columns.push({
       name: key,
@@ -69,6 +70,9 @@ export const generateColumn = (
 };
 
 export const generateSearchForm = (passedData = "") => {
-  const formattedData = formatTemplateVariables(passedData);
-  return formattedData;
+  return formatTemplateVariables(passedData);
+};
+
+export const generateDialogDetails = (passedData = {}) => {
+  return formatObjectToTitleCase(passedData);
 };

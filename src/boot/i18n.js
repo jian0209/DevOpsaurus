@@ -12,10 +12,16 @@ export default boot(({ app }) => {
   ) {
     userStore.language = "en-US";
   }
+
+  function missingTranslationHandler(locale, key) {
+    return key.split(".").findLast((item) => item);
+  }
+
   const i18n = createI18n({
     locale: userStore.language,
     globalInjection: true,
     messages,
+    missing: missingTranslationHandler,
   });
 
   app.use(i18n);

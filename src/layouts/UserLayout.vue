@@ -223,6 +223,13 @@ export default defineComponent({
               routeTo: "/settings/telegram",
               activeLink: false,
             },
+            {
+              title: "Slack",
+              name: "SettingsSlack",
+              icon: "send",
+              routeTo: "/settings/slack",
+              activeLink: false,
+            },
           ],
         },
         {

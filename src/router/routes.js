@@ -187,6 +187,11 @@ const routes = [
         name: "settings-telegram",
         component: () => import("pages/settings/SettingTelegramPage.vue"),
       },
+      {
+        path: "slack",
+        name: "settings-slack",
+        component: () => import("pages/settings/SettingSlackPage.vue"),
+      },
     ],
   },
   {

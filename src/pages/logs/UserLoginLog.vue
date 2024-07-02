@@ -21,8 +21,7 @@ import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { LOG_STATUS } from "src/utils/constants.js";
-import { formatObjectToTitleCase } from "src/utils/helper.js";
-import { generateColumn } from "src/utils/util.js";
+import { generateColumn, generateDialogDetails } from "src/utils/util.js";
 import moment from "moment";
 
 export default defineComponent({
@@ -60,7 +59,7 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     infoRow(row) {
-      const tempSelectedRow = formatObjectToTitleCase(row);
+      const tempSelectedRow = generateDialogDetails(row);
       for (const key in tempSelectedRow) {
         this.selectedRow[tempSelectedRow[key].formattedKey] =
           tempSelectedRow[key].value;

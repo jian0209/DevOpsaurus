@@ -65,7 +65,7 @@ import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { ROLES, ROLES_GROUP, STATUS } from "src/utils/constants.js";
-import { generateColumn } from "src/utils/util.js";
+import { generateColumn, generateDialogDetails } from "src/utils/util.js";
 import "src/css/settingsScreen.scss";
 import moment from "moment";
 
@@ -202,13 +202,16 @@ export default defineComponent({
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedInfoRow[key] = row[key];
+      const tempSelectedRow = generateDialogDetails(row);
+      for (const key in tempSelectedRow) {
+        this.selectedInfoRow[tempSelectedRow[key].originalKey] =
+          tempSelectedRow[key].value;
       }
       this.selectedInfoRow.role = ROLES[this.selectedInfoRow.role];
-      this.selectedInfoRow.mfaStatus = STATUS[this.selectedInfoRow.mfaStatus];
-      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow.createdAt = moment(
+      this.selectedInfoRow["MFA Status"] =
+        STATUS[this.selectedInfoRow.mfaStatus];
+      this.selectedInfoRow["Status"] = STATUS[this.selectedInfoRow.status];
+      this.selectedInfoRow["Created At"] = moment(
         this.selectedInfoRow.createdAt
       ).format("YYYY-MM-DD HH:mm:ss");
       this.infoDialogStatus = true;

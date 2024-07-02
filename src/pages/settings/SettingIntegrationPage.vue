@@ -1,7 +1,7 @@
 <template>
   <TelegramCont
     title="Integration Configuration"
-    subtitle="Support SMTP Mail and Telegram Message"
+    subtitle="Support SMTP Mail, Telegram Message and Slack Message"
     addBtnTxt="Save"
     :formList="formList"
     :formListDetails="integrationDetails"
@@ -33,16 +33,22 @@ export default defineComponent({
           type: "checkbox",
           value: ["true", "false"],
         },
+        {
+          label: "Slack",
+          model: "slack",
+          type: "checkbox",
+          value: ["true", "false"],
+        },
       ],
       integrationDetails: {
         email: false,
         telegram: false,
+        slack: false,
       },
     };
   },
   methods: {
     saveIntegration() {
-      console.log(this.integrationDetails);
       this.$q.notify({
         message: `Configuration Saved!`,
         type: "positive",
