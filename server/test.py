@@ -1,29 +1,9 @@
-import json
-import random
-import string
-import hashlib
-from conf.config import Config as c
-from const import const
+
 import base64
 import io
+import time
 import pyotp
 import qrcode
-
-
-def generate_random_string(length: int = 20) -> str:
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-
-def encrypt_password(password: str) -> str:
-    return hashlib.md5(c.ENCRYPT_KEY.encode() + password.encode()).hexdigest()
-
-
-def format_json_from_redis(data: str) -> dict:
-    if not data:
-        return None
-    data = data.decode('utf-8')
-    data = data.replace('\\"', '"')
-    return json.loads(data)
 
 
 def generate_qr_code(username: str) -> tuple[str, str]:
@@ -31,6 +11,9 @@ def generate_qr_code(username: str) -> tuple[str, str]:
 
     totp = pyotp.totp.TOTP(secret_key).provisioning_uri(
         name=username, issuer_name="devopsaurus")
+
+    print(f"secret_key: {secret_key}")
+    print(f"totp: {totp}")
 
     qr = qrcode.QRCode(
         version=1,
@@ -44,13 +27,20 @@ def generate_qr_code(username: str) -> tuple[str, str]:
     img = qr.make_image(fill_color="black", back_color="white")
 
     buffer = io.BytesIO()
-    img.save(buffer, "PNG")
+    img.save(buffer, format="PNG")
     buffer.seek(0)
 
     img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
     return secret_key, img_base64
 
 
 def verify_otp(secret_key: str, otp: str) -> bool:
     totp = pyotp.TOTP(secret_key)
     return totp.verify(otp)
+
+
+if __name__ == '__main__':
+    # generate_qr_code("admin")
+    while True:
+        print(verify_otp("Q6FQZO3HHQLIUYWTJKWNAC4DJYRLHTPR", input("Enter OTP: ")))

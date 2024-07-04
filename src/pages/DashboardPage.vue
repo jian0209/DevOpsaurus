@@ -1,5 +1,7 @@
 <template>
-  <h1>{{ $t("underConstruction") }}</h1>
+  <div>
+    <h1>{{ $t("underConstruction") }}</h1>
+  </div>
 </template>
 
 <script>

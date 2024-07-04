@@ -20,6 +20,9 @@ export const generateColumn = (
   const formattedData = formatObjectToTitleCase(data);
 
   for (const key in formattedData) {
+    if (key === "forceChangePassword") {
+      continue;
+    }
     columns.push({
       name: key,
       required: true,

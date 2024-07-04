@@ -48,6 +48,7 @@
 import { defineComponent } from "vue";
 import { useUserStore } from "src/stores/user";
 import "src/css/component.scss";
+import { logout } from "src/api/auth";
 
 export default defineComponent({
   name: "SidebarLink",
@@ -94,14 +95,23 @@ export default defineComponent({
     };
   },
   methods: {
-    goTo(route, name) {
+    async goTo(route, name) {
       if (name === "Logout") {
-        this.userStore.logout();
-        this.$router.push({ path: "/login" });
-        this.$q.notify({
-          message: "Logout successfully!",
-          type: "positive",
-        });
+        this.$q.loading.show({ message: this.$t("loading.logout") });
+        await logout()
+          .then((res) => {
+            if (res.code === 0) {
+              this.$q.notify({
+                message: this.$t("dialog.logout"),
+                type: "positive",
+              });
+              this.userStore.logout();
+              this.$router.push({ path: "/login" });
+            }
+          })
+          .finally(() => {
+            this.$q.loading.hide();
+          });
         return;
       }
       if (route) {

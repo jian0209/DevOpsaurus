@@ -3,6 +3,9 @@ export default {
     username: "Username",
     password: "Password",
     loginBtn: "Login",
+    mfaCode: "MFA Code",
+    newPassword: "New Password",
+    submitBtn: "Submit",
   },
   upsPage: {
     title: "UPS Page",
@@ -38,7 +41,7 @@ export default {
     userLogin: {
       title: "User Login Logs Page",
       subtitle:
-        "View User Logged In (Save Only 1 week logs) (Click on Row to View Details)",
+        "View User Logged In (Save Only half year logs) (Click on Row to View Details)",
       infoDialog: {
         title: "User Login Information Details",
       },
@@ -46,7 +49,7 @@ export default {
     system: {
       title: "System Logs Page",
       subtitle:
-        "View System Logs (Save Only 1 week logs) (Click on Row to View Details)",
+        "View System Logs (Save Only half year logs) (Click on Row to View Details)",
       infoDialog: {
         title: "System Logs Information Details",
       },
@@ -54,7 +57,17 @@ export default {
   },
   dialog: {
     welcome: "Welcome {name}!!!",
+    logout: "Logout Successfully",
     executeSuccess: "Command {command} executed successfully.",
+  },
+  notify: {
+    mfaEmpty: "MFA code is required.",
+    passwordEmpty: "Password is required.",
+    getQrCodeFailed: "Get QR code failed.",
+    changePasswordSuccess: "Change password successfully.",
+  },
+  loading: {
+    logout: "Logging out...",
   },
   table: {
     column: {
@@ -106,6 +119,30 @@ export default {
         refresh: "Refresh",
       },
     },
+  },
+  api: {
+    0: "Success",
+    1001: "Invalid parameter",
+    1002: "Existed ip",
+    1003: "Invalid ip",
+    1004: "Currently is in production env",
+    1005: "Currently is in pre env",
+    1006: "User not found",
+    1007: "User existed",
+    1008: "Invalid username or password",
+    1009: "Find your account is disabled, please contact admin to enable it.",
+    1010: "Admin token not found",
+    1011: "Your MFA is disabled, please contact admin to enable it.",
+    1012: "Your MFA is not set, please set it now.",
+    1013: "Invalid MFA code",
+    1014: "MFA too many attempts, please try again 30 minutes later.",
+
+    9001: "System internal exception",
+    9002: "Page not found",
+    9003: "Unsupported media type",
+    9004: "403 Forbidden",
+
+    unknown: "Check backend service logs for more details.",
   },
   underConstruction: "UNDER CONSTRUCTION!!!",
 };

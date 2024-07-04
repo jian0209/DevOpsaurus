@@ -8,6 +8,7 @@ USER_API = "user"
 
 # redis key
 USER_TOKEN = "user_token"
+MFA_TIME = "mfa_time"
 
 # user role
 VISITOR = 0
@@ -18,3 +19,9 @@ ADMIN = 3
 # status
 ENABLED = 1
 DISABLED = 0
+
+# user login step
+LOGIN_WITH_PASSWORD_ONLY = 0
+LOGIN_WITH_MFA_WITHOUT_SECRET_KEY = 1
+LOGIN_WITH_MFA_WITH_SECRET_KEY = 2
+LOGIN_WITH_FORCE_RESET_PASSWORD = 3

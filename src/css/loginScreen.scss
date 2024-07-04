@@ -25,3 +25,20 @@
 .login-btn {
   margin-top: 10px;
 }
+
+.mfa-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  flex-direction: column;
+}
+
+.mfa-form-input {
+  width: 200px;
+}
+
+.mfa-form-input-name {
+  width: 100%;
+  text-align: center
+}

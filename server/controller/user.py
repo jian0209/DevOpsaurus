@@ -6,47 +6,49 @@ from const import response
 from log import logger as l
 from model.user_model import User
 from model.redis_init import redis_client
-from const.const import USER_API, VERSION_API, USER_TOKEN, PROJECT_NAME, ADMIN, ENABLED, DISABLED
-from utils.helper import encrypt_password, generate_random_string, format_json_from_redis
+import const.const as const
+from conf.config import Config as c
+from utils.helper import encrypt_password, generate_random_string, format_json_from_redis, verify_otp, generate_qr_code
+from utils.credential import check_admin_account, check_user_account
 from model.db_init import db
 from utils.logs import save_user_login_log, save_system_log
+from utils.init import init_admin_account
 
 
 user_api = Blueprint('user_api', __name__)
 
 
-@user_api.route(f'/{VERSION_API}/{USER_API}/init_admin', methods=['POST'])
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/init_admin', methods=['POST'])
 def init_admin():
     try:
-        username = "admin"
-        password = "admin"
-        encrypted_password = encrypt_password(password)
-        email = "admin@admin.admin"
-        group = "admin"
-        role = ADMIN
-        mfa_status = 0
-        is_mfa_enable = 0
-        is_password_force_reset = 0
-        status = 1
-        created_at = int(time.time())
-
-        isExisted = User.query.filter_by(username="admin").first()
-        if isExisted:
-            l.info(f"Admin is already initiated")
-            return response.get_response(response.SUCCESS)
-
-        user = User(username=username, password=encrypted_password, email=email, group=group,
-                    role=role, mfa_status=mfa_status, is_mfa_enable=is_mfa_enable, is_password_force_reset=is_password_force_reset, status=status, created_at=created_at)
-        db.session.add(user)
-        db.session.commit()
-        l.info("Initiated admin")
-        print("Done Initiation")
+        init_admin_account(c.INITIAL_USERNAME,
+                           c.INITIAL_PASSWORD, c.INITIAL_EMAIL, True)
         return response.get_response(response.SUCCESS)
-    finally:
-        pass
+    except Exception as e:
+        l.error(f"Init admin failed: {str(e)}")
+        print(f"Init admin failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
 
 
-@user_api.route(f'/{VERSION_API}/{USER_API}/login', methods=['POST'])
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/reset_admin', methods=['POST'])
+def reset_admin():
+    try:
+        if request.remote_addr != "127.0.0.1":
+            l.error(f"Reset admin failed, request from {request.remote_addr}")
+            return response.get_response(response.FORBIDDEN)
+
+        init_admin_account(c.INITIAL_USERNAME,
+                           c.INITIAL_PASSWORD, c.INITIAL_EMAIL)
+
+        print("Admin reset successfully!")
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Reset admin failed: {str(e)}")
+        print(f"Reset admin failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/login', methods=['POST'])
 def login():
     try:
         username = str(request.json.get("username"))
@@ -77,66 +79,220 @@ def login():
             save_user_login_log(log_user_info)
             return response.get_response(response.INVALID_LOGIN_CREDENTIAL)
 
-        if user.status == DISABLED:
+        if user.status == const.DISABLED:
             l.error(f"User {username} is disabled, login failed")
             log_user_info["id"] = user.id
             log_user_info["reason"] = "User is disabled"
             save_user_login_log(log_user_info)
             return response.get_response(response.INVALID_USER_STATUS)
 
-        # generate token and write to redis
-        token = generate_random_string(20)
-        user_redis = {
-            "id": int(user.id),
-            "username": str(user.username),
-            "email": str(user.email),
-            "group": str(user.group),
-            "mfa_status": int(user.mfa_status),
-            "role": int(user.role),
-            "status": int(user.status),
-            "created_at": int(user.created_at)
-        }
-        if not redis_client.setex(f"{PROJECT_NAME}:{USER_TOKEN}:{token}", timedelta(days=1), json.dumps(user_redis)):
-            l.error(f"Failed to write token to redis")
-            return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
-
-        # generate user info and return
         user_info = {
             "username": user.username,
-            "email": user.email,
-            "group": user.group,
-            "mfa_status": user.mfa_status,
-            "step": 0,
-            "role": user.role,
-            "status": user.status,
-            "created_at": user.created_at
+            "step": const.LOGIN_WITH_PASSWORD_ONLY
         }
-        if user.is_password_force_reset == ENABLED:
-            user_info["step"] = 1
-        if user_info["step"] != 1 and user.is_mfa_enable == ENABLED:
-            user_info["step"] = 2
 
-        log_user_info["id"] = user.id
-        log_user_info["status"] = 1
-        log_user_info["reason"] = "Login success"
-        save_user_login_log(log_user_info)
+        if user.mfa_status == const.ENABLED and not user.mfa_secret_key:
+            # if user has enabled mfa but not set secret key
+            # redirect to set secret key
+            user_info["step"] = const.LOGIN_WITH_MFA_WITHOUT_SECRET_KEY
+        elif user.mfa_status == const.ENABLED:
+            # if user has enabled mfa and set secret key
+            # redirect to mfa login
+            user_info["step"] = const.LOGIN_WITH_MFA_WITH_SECRET_KEY
+        elif user.is_password_force_reset == const.ENABLED:
+            # if user has disabled mfa and need to reset password
+            user_info["step"] = const.LOGIN_WITH_FORCE_RESET_PASSWORD
+        else:
+            # if user has disabled mfa and not need to reset password
+            # generate token and write to redis
+            token = generate_random_string(20)
+            user_info["token"] = token
+            user_redis = {
+                "id": int(user.id),
+                "username": str(user.username),
+                "email": str(user.email),
+                "group": str(user.group),
+                "mfa_status": int(user.mfa_status),
+                "role": int(user.role),
+                "status": int(user.status),
+                "created_at": int(user.created_at)
+            }
+            if not redis_client.setex(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}", timedelta(days=1), json.dumps(user_redis)):
+                l.error(f"Failed to write token to redis")
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
 
-        return response.get_response(response.SUCCESS, token)
+        return response.get_response(response.SUCCESS, user_info)
+    except Exception as e:
+        l.error(f"Login failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
     finally:
         pass
 
 
-@user_api.route('/{VERSION_API}/{USER_API}/logout', methods=['POST'])
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/get_mfa_img', methods=['POST'])
+def get_mfa_img():
+    try:
+        username = str(request.json.get("username"))
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        secret_key, base_img = generate_qr_code(username)
+
+        # update secret key to db
+        user.mfa_secret_key = secret_key
+        db.session.commit()
+
+        return response.get_response(response.SUCCESS, {"img": base_img, "secret_key": secret_key})
+    except Exception as e:
+        l.error(f"get mfa img: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/mfa_login', methods=['POST'])
+def mfa_login():
+    try:
+        username = str(request.json.get("username"))
+        mfa_token = str(request.json.get("mfa_token"))
+
+        token = generate_random_string(20)
+
+        return_data = {
+            "token": token,
+            "step": const.LOGIN_WITH_PASSWORD_ONLY
+        }
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        # get redis key for mfa time limit
+        mfa_time = redis_client.get(
+            f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}")
+
+        if not mfa_time:
+            mfa_time = 0
+        if int(mfa_time) > 5:
+            l.error(f"{username} MFA login failed, too many attempts")
+            if not redis_client.set(f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}", int(mfa_time) + 1, ex=1800):
+                l.error(f"Failed to write mfa time to redis")
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+            save_user_login_log({
+                "id": user.id,
+                "username": username,
+                "last_login_time": int(time.time()),
+                "last_login_ip": request.remote_addr,
+                "user_agent": request.headers.get("User-Agent"),
+                "status": 0,
+                "reason": "MFA too many attempts: {mfa_time}"
+            })
+            return response.get_response(response.MFA_TOO_MANY_ATTEMPTS)
+
+        # get secret key
+        if not user.mfa_secret_key:
+            l.error(f"User {username} has not set mfa secret key")
+            return_data = {
+                "username": user.username,
+                "step": const.LOGIN_WITH_MFA_WITHOUT_SECRET_KEY
+            }
+            return response.get_response(response.MFA_NOT_SET, return_data)
+
+        # verify mfa token
+        if verify_otp(user.mfa_secret_key, mfa_token):
+            # generate token and write to redis
+            user_redis = {
+                "id": int(user.id),
+                "username": str(user.username),
+                "email": str(user.email),
+                "group": str(user.group),
+                "mfa_status": int(user.mfa_status),
+                "role": int(user.role),
+                "status": int(user.status),
+                "created_at": int(user.created_at)
+            }
+            if not redis_client.setex(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}", timedelta(days=1), json.dumps(user_redis)):
+                l.error(f"Failed to write token to redis")
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+            redis_client.delete(
+                f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}")
+            if user.is_password_force_reset == const.ENABLED:
+                return_data = {
+                    "token": token,
+                    "step": const.LOGIN_WITH_FORCE_RESET_PASSWORD
+                }
+            save_user_login_log({
+                "id": user.id,
+                "username": username,
+                "last_login_time": int(time.time()),
+                "last_login_ip": request.remote_addr,
+                "user_agent": request.headers.get("User-Agent"),
+                "status": 1,
+                "reason": "Login Successfully"
+            })
+        else:
+            l.error(f"{username}: MFA token is incorrect")
+            if not redis_client.set(f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}", int(mfa_time) + 1, ex=1800):
+                l.error(f"Failed to write mfa time to redis")
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+            save_user_login_log({
+                "id": user.id,
+                "username": username,
+                "last_login_time": int(time.time()),
+                "last_login_ip": request.remote_addr,
+                "user_agent": request.headers.get("User-Agent"),
+                "status": 0,
+                "reason": "Login Failed with MFA token incorrect"
+            })
+            return response.get_response(response.INVALID_MFA_LOGIN)
+
+        return response.get_response(response.SUCCESS, return_data)
+    except Exception as e:
+        l.error(f"MFA login failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/reset_password', methods=['POST'])
+def reset_password():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow = check_user_account(token)
+
+        if not is_allow:
+            l.error(f"token {token} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        username = str(request.json.get("username"))
+        password = str(request.json.get("password"))
+        encrypted_password = encrypt_password(password)
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+        # set new password
+        user.password = encrypted_password
+        # disable force reset password
+        user.is_password_force_reset = const.DISABLED
+        db.session.commit()
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Reset password failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/logout', methods=['POST'])
 def logout():
     try:
         token = str(request.headers.get("D-token"))
 
         user_info = format_json_from_redis(
-            redis_client.get(f"{PROJECT_NAME}:{USER_TOKEN}:{token}"))
+            redis_client.get(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}"))
         if not user_info:
             l.error(f"Token {token} not found")
             return response.get_response(response.USER_NOT_FOUND)
-        redis_client.delete(f"{PROJECT_NAME}:{USER_TOKEN}:{token}")
+        redis_client.delete(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}")
 
         log_user_info = {
             "id": user_info.get("id"),
@@ -149,79 +305,243 @@ def logout():
         }
         save_user_login_log(log_user_info)
         return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Logout failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
     finally:
         pass
 
 
-@user_api.route(f'/{VERSION_API}/{USER_API}/get_user_info', methods=['POST'])
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/get_user_info', methods=['POST'])
 def get_user_info():
     try:
         token = str(request.headers.get("D-token"))
-        user_info = redis_client.get(f"{PROJECT_NAME}:{USER_TOKEN}:{token}")
+        user_info = redis_client.get(
+            f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}")
         if not user_info:
             l.error(f"Token {token} not found")
             return response.get_response(response.USER_NOT_FOUND)
 
         return response.get_response(response.SUCCESS, format_json_from_redis(user_info))
+    except Exception as e:
+        l.error(f"Get user info failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
     finally:
         pass
 
 
-@user_api.route(f'/{VERSION_API}/{USER_API}/add', methods=['POST'])
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/add', methods=['POST'])
 def add():
-    submitted_admin_token = str(request.headers.get("D-token"))
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
 
-    username = str(request.json.get("username"))
-    password = str(request.json.get("password"))
-    email = str(request.json.get("email"))
-    group = str(request.json.get("group"))
-    role = int(request.json.get("role"))
-    mfa_status = int(request.json.get("mfa_status"))
-    is_mfa_enable = int(request.json.get("is_mfa_enable"))
-    is_password_force_reset = int(
-        request.json.get("is_password_force_reset"))
-    encrypted_password = encrypt_password(password)
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
 
-    # read from redis
-    admin_token = format_json_from_redis(redis_client.get(
-        f"{PROJECT_NAME}:{USER_TOKEN}:{submitted_admin_token}"))
-    # verify admin
-    if not admin_token:
-        l.error(f"Admin {submitted_admin_token} not found")
-        return response.get_response(response.USER_NOT_FOUND)
+        username = str(request.json.get("username"))
+        password = str(request.json.get("password"))
+        email = str(request.json.get("email"))
+        group = str(request.json.get("group"))
+        role = int(request.json.get("role"))
+        mfa_status = int(request.json.get("mfa_status"))
+        is_password_force_reset = const.DISABLED
+        encrypted_password = encrypt_password(password)
 
-    if admin_token.get("role") != ADMIN:
-        l.error(f"Admin {admin_token.get('username')} is not admin")
-        return response.get_response(response.FORBIDDEN)
+        # Check if user already exists
+        user = User.query.filter_by(username=username).first()
+        if user:
+            l.error(f"User {username} already exists")
+            return response.get_response(response.USER_EXISTED)
 
-    # Check if user already exists
-    user = User.query.filter_by(username=username).first()
-    if user:
-        l.error(f"User {username} already exists")
-        return response.get_response(response.USER_EXISTED)
+        # Add Information
+        # unix timestamp
+        time_now = int(time.time())
+        status = 1
 
-    # Add Information
-    # unix timestamp
-    time_now = int(time.time())
-    status = 1
+        # write to db
+        user = User(username=username, password=encrypted_password, email=email, group=group,
+                    role=role, mfa_status=mfa_status, status=status, created_at=time_now, is_password_force_reset=is_password_force_reset)
 
-    # write to db
-    user = User(username=username, password=encrypted_password, email=email, group=group,
-                role=role, mfa_status=mfa_status, status=status, created_at=time_now, is_mfa_enable=is_mfa_enable, is_password_force_reset=is_password_force_reset)
+        db.session.add(user)
+        db.session.commit()
 
-    db.session.add(user)
-    db.session.commit()
+        l.info(f"Admin: {admin_info['username']} added User {username}")
 
-    l.info(f"Admin: {admin_token['username']} added User {username}")
+        system_log_info = {
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Add User",
+            "source": "User",
+            "description": f"Admin: {admin_info['username']} added User {username}",
+            "created_at": time_now
+        }
+        save_system_log(system_log_info)
 
-    system_log_info = {
-        "username": admin_token["username"],
-        "role": admin_token["role"],
-        "action": "Add User",
-        "source": "User",
-        "description": f"Admin: {admin_token['username']} added User {username}",
-        "created_at": time_now
-    }
-    save_system_log(system_log_info)
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Add user failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+    finally:
+        pass
 
-    return response.get_response(response.SUCCESS)
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/edit', methods=['POST'])
+def edit_user():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        username = str(request.json.get("username"))
+        password = str(request.json.get("password"))
+        encrypted_password = encrypt_password(password)
+        email = str(request.json.get("email"))
+        group = str(request.json.get("group"))
+        role = int(request.json.get("role"))
+        mfa_status = int(request.json.get("mfa_status"))
+        is_password_force_reset = int(
+            request.json.get("is_password_force_reset"))
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        user.password = encrypted_password
+        user.email = email
+        user.group = group
+        user.role = role
+        user.mfa_status = mfa_status
+        user.is_password_force_reset = is_password_force_reset
+        db.session.commit()
+
+        l.info(f"Admin: {admin_info['username']} edited User {username}")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit User",
+            "source": "User",
+            "description": f"Admin: {admin_info['username']} edited User {username}",
+            "created_at": int(time.time())
+        })
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit user failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/delete', methods=['POST'])
+def delete_user():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        username = str(request.json.get("username"))
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        db.session.delete(user)
+        db.session.commit()
+
+        l.info(f"Admin: {admin_info['username']} deleted User {username}")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Delete User",
+            "source": "User",
+            "description": f"Admin: {admin_info['username']} deleted User {username}",
+            "created_at": int(time.time())
+        })
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Delete user failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+    finally:
+        pass
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/edit_status', methods=['POST'])
+def edit_status_user():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        username = str(request.json.get("username"))
+        status = int(request.json.get("status"))
+        status_name = "Enabled" if status == 1 else "Disabled"
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        user.status = status
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited User {username} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit User Status",
+            "source": "User",
+            "description": f"Admin: {admin_info['username']} edited User {username} status to {status_name}",
+            "created_at": int(time.time())
+        })
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit user status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+    finally:
+        pass
+
+
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/list', methods=['POST'])
+def get_list():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        users = User.query.all()
+        user_list = []
+        for user in users:
+            user_list.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "group": user.group,
+                "role": user.role,
+                "mfa_status": user.mfa_status,
+                "status": user.status,
+                "created_at": user.created_at
+            })
+
+        return response.get_response(response.SUCCESS, {"users": user_list})
+    except Exception as e:
+        l.error(f"Get user list failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+    finally:
+        pass

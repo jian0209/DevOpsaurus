@@ -6,7 +6,22 @@ const routes = [
       {
         path: "",
         name: "login",
-        component: () => import("pages/LoginPage.vue"),
+        component: () => import("pages/login/LoginPage.vue"),
+      },
+      {
+        path: "mfa-register",
+        name: "login-mfa-register",
+        component: () => import("pages/login/MfaRegisterPage.vue"),
+      },
+      {
+        path: "mfa",
+        name: "login-mfa",
+        component: () => import("pages/login/MfaSubmitPage.vue"),
+      },
+      {
+        path: "reset-password",
+        name: "login-reset-password",
+        component: () => import("pages/login/ResetPasswordPage.vue"),
       },
     ],
   },

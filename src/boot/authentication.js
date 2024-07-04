@@ -6,6 +6,9 @@ export default boot(({ router }) => {
     const userStore = useUserStore();
     const loginRoute = "/login";
     const forbiddenRoute = "/forbidden";
+    const mfaRegisterRoute = "/login/mfa-register";
+    const mfaRoute = "/login/mfa";
+    const resetPasswordRoute = "/login/reset-password";
 
     const token = userStore.token;
 
@@ -23,6 +26,15 @@ export default boot(({ router }) => {
           next();
           break;
         case loginRoute:
+          next();
+          break;
+        case mfaRegisterRoute:
+          next();
+          break;
+        case mfaRoute:
+          next();
+          break;
+        case resetPasswordRoute:
           next();
           break;
         default:

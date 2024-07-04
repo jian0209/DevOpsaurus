@@ -19,13 +19,13 @@ def save_user_login_log(user_info: dict):
     db.session.commit()
 
 
-def save_system_log(log_info: dict):
-    username = log_info.get("username")
-    role = log_info.get("role")
-    action = log_info.get("action")
-    source = log_info.get("source")
-    description = log_info.get("description")
-    created_at = log_info.get("created_at")
+def save_system_log(system_info: dict):
+    username = system_info.get("username")
+    role = system_info.get("role")
+    action = system_info.get("action")
+    source = system_info.get("source")
+    description = system_info.get("description")
+    created_at = system_info.get("created_at")
 
     logs_info = SystemLog(username=username, role=role, action=action,
                           source=source, description=description, created_at=created_at)

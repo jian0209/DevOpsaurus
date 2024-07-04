@@ -87,6 +87,7 @@ export default defineComponent({
           email: "john123@gmail.com",
           group: "IT",
           mfaStatus: 1,
+          forceChangePassword: 0,
           role: 2,
           status: 1,
           createdAt: 1719553933000,
@@ -97,6 +98,7 @@ export default defineComponent({
           email: "jane123@gmail.com",
           group: "IT",
           mfaStatus: 1,
+          forceChangePassword: 0,
           role: 3,
           status: 1,
           createdAt: 1719553933000,
@@ -107,6 +109,7 @@ export default defineComponent({
           email: "smith@gmsil.com",
           group: "IT",
           mfaStatus: 0,
+          forceChangePassword: 1,
           role: 1,
           status: 0,
           createdAt: 1719553933000,
@@ -142,6 +145,21 @@ export default defineComponent({
         {
           label: "MFA Status",
           model: "mfaStatus",
+          type: "radio",
+          radioOption: [
+            {
+              label: "Enabled",
+              value: 1,
+            },
+            {
+              label: "Disabled",
+              value: 0,
+            },
+          ],
+        },
+        {
+          label: "Force User To Change Password",
+          model: "forceChangePassword",
           type: "radio",
           radioOption: [
             {

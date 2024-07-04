@@ -29,6 +29,11 @@ export const ROLES_GROUP = [
   },
 ];
 
+export const LOGIN_WITH_PASSWORD_ONLY = 0;
+export const LOGIN_WITH_MFA_WITHOUT_SECRET_KEY = 1;
+export const LOGIN_WITH_MFA_WITH_SECRET_KEY = 2;
+export const LOGIN_WITH_FORCE_RESET_PASSWORD = 3;
+
 export const ENABLED = 1;
 export const DISABLED = 0;
 

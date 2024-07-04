@@ -54,6 +54,11 @@ def catch_all_exception(e):
 
 @app.before_request
 def before_request():
+    l.info(
+        "request url: {url}, method: {method}, format: {format}, body: {body}".format(
+            url=request.url, method=request.method, format=request.content_type, body=str(
+                request.data)
+        ))
     if request.form:
         request_body = json.dumps(request.form)
         l.info("request url: {url}, method: {method}, format: form, body: {body}".format(
@@ -63,8 +68,4 @@ def before_request():
         l.info("request url: {url}, method: {method}, format: json, body: {body}".format(
             url=request.url, method=request.method, body=request_body))
     else:
-        l.info(
-            "request url: {url}, method: {method}, format: {format}, body: {body}".format(
-                url=request.url, method=request.method, format=request.content_type, body=str(
-                    request.data)
-            ))
+        pass
