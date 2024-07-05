@@ -37,6 +37,7 @@
               dense
               outlined
               :hint="item.hint"
+              :readonly="item.readonly"
             />
             <q-select
               v-if="item.type === 'select'"

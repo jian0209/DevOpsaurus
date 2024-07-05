@@ -5,6 +5,7 @@ export default {
     loginBtn: "Login",
     mfaCode: "MFA Code",
     newPassword: "New Password",
+    oldPassword: "Old Password",
     submitBtn: "Submit",
   },
   upsPage: {
@@ -65,6 +66,10 @@ export default {
     passwordEmpty: "Password is required.",
     getQrCodeFailed: "Get QR code failed.",
     changePasswordSuccess: "Change password successfully.",
+    sessionExpired: "Session expired, please login again.",
+    configurationSaved: "Configuration saved successfully.",
+    testSent: "Test {platform} sent successfully.",
+    testSuccess: "Test Connection success.",
   },
   loading: {
     logout: "Logging out...",
@@ -136,11 +141,20 @@ export default {
     1012: "Your MFA is not set, please set it now.",
     1013: "Invalid MFA code",
     1014: "MFA too many attempts, please try again 30 minutes later.",
+    1015: "Invalid old password",
+    1016: "Command name existed",
+    1017: "Command not found",
+    1018: "SSH authentication error",
+    1019: "SSH connection error",
+    1020: "SSH exception",
 
     9001: "System internal exception",
     9002: "Page not found",
     9003: "Unsupported media type",
     9004: "403 Forbidden",
+    9005: "400 Bad request",
+
+    9999: "Network Error",
 
     unknown: "Check backend service logs for more details.",
   },

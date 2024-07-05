@@ -14,6 +14,7 @@
 <script>
 import { defineComponent } from "vue";
 import TelegramCont from "src/components/SettingsAddCont.vue";
+import { getSettings, saveSettings, testSettings } from "src/api/settings";
 
 export default defineComponent({
   name: "SettingTelegramPage",
@@ -25,45 +26,92 @@ export default defineComponent({
       formList: [
         {
           label: "Bot Token",
-          model: "botToken",
+          model: "bot_token",
           type: "text",
           hint: "Hint: 1234567:abcdefghijk1234567890abcdefghijk",
         },
         {
           label: "Chat ID",
-          model: "chatId",
+          model: "chat_id",
           type: "text",
           hint: "Hint: 1234567890",
         },
         {
           label: "Parse Mode (Markdown)",
-          model: "markdown",
+          model: "parse",
           type: "checkbox",
-          value: ["true", "false"],
+          value: [true, false],
         },
       ],
       tgDetails: {
-        botToken: null,
-        chatId: null,
-        markdown: true,
+        bot_token: null,
+        chat_id: null,
+        parse: true,
       },
     };
   },
   methods: {
-    saveTelegram() {
-      console.log(this.tgDetails);
-      this.$q.notify({
-        message: `Configuration Saved!`,
-        type: "positive",
-      });
+    async testTelegram() {
+      this.$q.loading.show();
+      await testSettings("telegram", this.tgDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.testSent", { platform: "Telegram" }),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
-    testTelegram() {
-      console.log(this.tgDetails);
-      this.$q.notify({
-        message: `Telegram Message Sent!`,
-        type: "positive",
-      });
+    async saveTelegram() {
+      this.$q.loading.show();
+      await saveSettings("telegram", this.tgDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.configurationSaved"),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
+    async getTelegram() {
+      this.$q.loading.show();
+      await getSettings("telegram")
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.tgDetails = res.data;
+          this.tgDetails.parse = res.data.parse ? true : false;
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+    },
+  },
+  created() {
+    this.getTelegram();
   },
 });
 </script>

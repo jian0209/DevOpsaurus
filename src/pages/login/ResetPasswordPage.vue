@@ -38,13 +38,19 @@ export default defineComponent({
     return {
       formList: [
         {
+          label: `${this.$t("loginPage.oldPassword")}`,
+          model: "old_password",
+          type: "password",
+        },
+        {
           label: `${this.$t("loginPage.newPassword")}`,
-          model: "password",
+          model: "new_password",
           type: "password",
         },
       ],
       formDetails: {
-        password: null,
+        old_password: null,
+        new_password: null,
       },
       userStore: useUserStore(),
       isLoading: false,
@@ -52,7 +58,10 @@ export default defineComponent({
   },
   methods: {
     async changePassword() {
-      if (this.formDetails.password === null) {
+      if (
+        this.formDetails.old_password === null ||
+        this.formDetails.new_password === null
+      ) {
         this.$q.notify({
           message: `${this.$t("notify.passwordEmpty")}`,
           type: "negative",

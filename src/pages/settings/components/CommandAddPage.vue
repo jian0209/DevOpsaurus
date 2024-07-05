@@ -6,6 +6,7 @@
     :formList="formList"
     :formListDetails="commandDetails"
     @submit:add="add"
+    @test:connection="testCommand"
   />
 </template>
 
@@ -13,6 +14,7 @@
 import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import "src/css/settingsScreen.scss";
+import { addCommand, testCommand } from "src/api/settings";
 
 export default defineComponent({
   name: "CommandAddPage",
@@ -39,12 +41,12 @@ export default defineComponent({
         },
         {
           label: "SSH Key",
-          model: "sshKey",
+          model: "ssh_key",
           type: "textarea",
         },
         {
           label: "SSH Port",
-          model: "sshPort",
+          model: "ssh_port",
           type: "text",
         },
         {
@@ -57,19 +59,50 @@ export default defineComponent({
         name: null,
         host: null,
         username: null,
-        sshKey: null,
-        sshPort: null,
+        ssh_key: null,
+        ssh_port: null,
         command: null,
       },
     };
   },
   methods: {
-    add() {
-      this.$q.notify({
-        message: `Added ${this.commandDetails.name} successfully!`,
-        type: "positive",
-      });
-      this.$router.push("/settings/command");
+    async add() {
+      const data = this.commandDetails;
+      this.$q.loading.show();
+      await addCommand(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Added ${data.name} successfully!`,
+            type: "positive",
+          });
+          this.$router.push("/settings/command");
+        })
+        .finally(() => this.$q.loading.hide());
+    },
+    async testCommand() {
+      this.$q.loading.show();
+      await testCommand(this.commandDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.testSuccess", { platform: "SSH" }),
+            type: "positive",
+          });
+        })
+        .finally(() => this.$q.loading.hide());
     },
   },
 });

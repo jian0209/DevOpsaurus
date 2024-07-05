@@ -13,11 +13,18 @@ MFA_DISABLED = 1011
 MFA_NOT_SET = 1012
 INVALID_MFA_LOGIN = 1013
 MFA_TOO_MANY_ATTEMPTS = 1014
+INVALID_OLD_PASSWORD = 1015
+COMMAND_EXISTED = 1016
+COMMAND_NOT_FOUND = 1017
+SSH_AUTH_ERROR = 1018
+SSH_CONNECTION_ERROR = 1019
+SSH_EXCEPTION = 1020
 
 SYSTEM_INTERNAL_EXCEPTION = 9001
 PAGE_NOT_FOUND = 9002
 UNSUPPORTED_MEDIA_TYPE = 9003
 FORBIDDEN = 9004
+BAD_REQUEST = 9005
 
 response_const = {
     0: "Success",
@@ -35,11 +42,18 @@ response_const = {
     1012: "Your MFA is not set, please set it now.",
     1013: "Invalid MFA code",
     1014: "MFA too many attempts, please try again 30 minutes later.",
+    1015: "Invalid old password",
+    1016: "Command name existed",
+    1017: "Command not found",
+    1018: "SSH authentication error",
+    1019: "SSH connection error",
+    1020: "SSH exception",
 
     9001: "System internal exception",
     9002: "Page not found",
     9003: "Unsupported media type",
-    9004: "403 Forbidden"
+    9004: "403 Forbidden",
+    9005: "400 Bad request"
 }
 
 

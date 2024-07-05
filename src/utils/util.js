@@ -20,7 +20,7 @@ export const generateColumn = (
   const formattedData = formatObjectToTitleCase(data);
 
   for (const key in formattedData) {
-    if (key === "forceChangePassword") {
+    if (key === "force_change_password") {
       continue;
     }
     columns.push({
@@ -32,8 +32,8 @@ export const generateColumn = (
       format: (val) => {
         if (
           key.toLowerCase().includes("time") ||
-          key.includes("createdAt") ||
-          key.includes("updatedAt")
+          key.includes("created_at") ||
+          key.includes("updated_at")
         ) {
           return `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`;
         } else {

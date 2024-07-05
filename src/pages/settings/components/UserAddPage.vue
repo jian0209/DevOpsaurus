@@ -13,6 +13,7 @@ import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import { ROLES_GROUP } from "src/utils/constants";
 import "src/css/settingsScreen.scss";
+import { addUser } from "src/api/settings";
 
 export default defineComponent({
   name: "UserAddPage",
@@ -50,7 +51,7 @@ export default defineComponent({
         },
         {
           label: "MFA Status",
-          model: "mfaStatus",
+          model: "mfa_status",
           type: "radio",
           radioOption: [
             {
@@ -70,17 +71,31 @@ export default defineComponent({
         email: null,
         group: null,
         role: null,
-        mfaStatus: 0,
+        mfa_status: 0,
       },
     };
   },
   methods: {
-    add() {
-      this.$q.notify({
-        message: `Added ${this.userDetails.username} successfully!`,
-        type: "positive",
-      });
-      this.$router.push("/settings/user");
+    async add() {
+      const data = this.userDetails;
+      data.role = data.role.value;
+      this.$q.loading.show();
+      await addUser(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Added ${data.username} successfully!`,
+            type: "positive",
+          });
+          this.$router.push("/settings/user");
+        })
+        .finally(() => this.$q.loading.hide());
     },
   },
 });

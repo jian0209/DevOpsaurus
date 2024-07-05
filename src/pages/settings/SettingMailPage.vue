@@ -5,7 +5,7 @@
     addBtnTxt="Save"
     testBtnTxt="Test Send Email"
     :formList="formList"
-    :formListDetails="upsDetails"
+    :formListDetails="mailDetails"
     @submit:add="saveEmail"
     @test:connection="testEmail"
   />
@@ -14,6 +14,7 @@
 <script>
 import { defineComponent } from "vue";
 import MailCont from "src/components/SettingsAddCont.vue";
+import { getSettings, saveSettings, testSettings } from "src/api/settings";
 
 export default defineComponent({
   name: "SettingMailPage",
@@ -27,73 +28,133 @@ export default defineComponent({
       formList: [
         {
           label: "SMTP Server",
-          model: "smtpServer",
+          model: "smtp_server",
           type: "text",
         },
         {
           label: "SMTP Port",
-          model: "smtpPort",
+          model: "smtp_port",
           type: "text",
         },
         {
           label: "SMTP HELO Domain",
-          model: "smtpHeloDomain",
+          model: "email_helo",
           type: "text",
         },
         {
           label: "SMTP Username",
-          model: "smtpUsername",
+          model: "smtp_username",
           type: "text",
         },
         {
           label: "SMTP Password",
-          model: "smtpPassword",
+          model: "smtp_password",
           type: "password",
         },
         {
           label: "Emission Email Address",
-          model: "emitEmailAddr",
+          model: "email_from",
           type: "text",
         },
         {
           label: "Allow SSL/TLS",
-          model: "allowSslTls",
+          model: "email_allow_ssl_tls",
           type: "checkbox",
-          value: ["true", "false"],
+          value: [true, false],
         },
         {
           label: "Allow STARTTLS",
-          model: "allowStartTls",
+          model: "email_allow_start_tls",
           type: "checkbox",
-          value: ["true", "false"],
+          value: [true, false],
+        },
+        {
+          label: "Test Send Email",
+          model: "email_to",
+          type: "text",
         },
       ],
-      upsDetails: {
-        smtpServer: null,
-        smtpPort: null,
-        smtpUsername: null,
-        smtpPassword: null,
-        emitEmailAddr: null,
-        allowSslTls: false,
-        allowStartTls: false,
+      mailDetails: {
+        smtp_server: null,
+        smtp_port: null,
+        smtp_username: null,
+        smtp_password: null,
+        email_helo: null,
+        email_from: null,
+        email_to: null,
+        email_allow_ssl_tls: false,
+        email_allow_start_tls: false,
       },
     };
   },
   methods: {
-    saveEmail() {
-      console.log(this.upsDetails);
-      this.$q.notify({
-        message: `Configuration Saved!`,
-        type: "positive",
-      });
+    async testEmail() {
+      this.$q.loading.show();
+      await testSettings("email", this.mailDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.testSent", { platform: "Email" }),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
-    testEmail() {
-      console.log(this.upsDetails);
-      this.$q.notify({
-        message: `Email Sent!`,
-        type: "positive",
-      });
+    async saveEmail() {
+      this.$q.loading.show();
+      await saveSettings("email", this.mailDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.configurationSaved"),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
+    async getEmail() {
+      this.$q.loading.show();
+      await getSettings("email")
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.mailDetails = res.data;
+          this.mailDetails.email_allow_ssl_tls = res.data.email_allow_ssl_tls
+            ? true
+            : false;
+          this.mailDetails.email_allow_start_tls = res.data
+            .email_allow_start_tls
+            ? true
+            : false;
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+    },
+  },
+  created() {
+    this.getEmail();
   },
 });
 </script>

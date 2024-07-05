@@ -10,7 +10,7 @@
       />
     </div>
     <TableContainer
-      :rows="dummyData"
+      :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
       @disable:row="disableRow($event)"
@@ -32,14 +32,14 @@
       :dialogStatus="enableDialogStatus"
       :subtitle="`This Will Enable User {${selectedRow}} Log In`"
       @update:dialogStatus="updateDialogStatus"
-      @submit:edit="submitEnable"
+      @submit:edit="submitEditStatus(1)"
     />
     <DialogComponent
       title="Disable User"
       :dialogStatus="disableDialogStatus"
       :subtitle="`This Will Disable User {${selectedRow}} Log In`"
       @update:dialogStatus="updateDialogStatus"
-      @submit:edit="submitDisable"
+      @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
       title="Delete User"
@@ -65,9 +65,15 @@ import TableContainer from "src/components/TableCont.vue";
 import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { ROLES, ROLES_GROUP, STATUS } from "src/utils/constants.js";
-import { generateColumn, generateDialogDetails } from "src/utils/util.js";
+import { generateColumn } from "src/utils/util.js";
 import "src/css/settingsScreen.scss";
 import moment from "moment";
+import {
+  getUserList,
+  editUser,
+  editStatusUser,
+  deleteUser,
+} from "src/api/settings";
 
 export default defineComponent({
   name: "SettingUserPage",
@@ -80,46 +86,24 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: ref([
         {
-          id: 1,
-          username: "John Doe",
-          email: "john123@gmail.com",
-          group: "IT",
-          mfaStatus: 1,
-          forceChangePassword: 0,
-          role: 2,
-          status: 1,
-          createdAt: 1719553933000,
+          id: null,
+          username: null,
+          email: null,
+          role: null,
+          group: null,
+          mfa_status: null,
+          status: null,
+          created_at: null,
         },
-        {
-          id: 2,
-          username: "Jane Doe",
-          email: "jane123@gmail.com",
-          group: "IT",
-          mfaStatus: 1,
-          forceChangePassword: 0,
-          role: 3,
-          status: 1,
-          createdAt: 1719553933000,
-        },
-        {
-          id: 3,
-          username: "John Smith",
-          email: "smith@gmsil.com",
-          group: "IT",
-          mfaStatus: 0,
-          forceChangePassword: 1,
-          role: 1,
-          status: 0,
-          createdAt: 1719553933000,
-        },
-      ],
+      ]),
       formList: [
         {
           label: "Username",
           model: "username",
           type: "text",
+          readonly: true,
         },
         {
           label: "Password",
@@ -144,7 +128,7 @@ export default defineComponent({
         },
         {
           label: "MFA Status",
-          model: "mfaStatus",
+          model: "mfa_status",
           type: "radio",
           radioOption: [
             {
@@ -159,7 +143,7 @@ export default defineComponent({
         },
         {
           label: "Force User To Change Password",
-          model: "forceChangePassword",
+          model: "is_password_force_reset",
           type: "radio",
           radioOption: [
             {
@@ -185,7 +169,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(this.rowData, false, true, true);
+      this.getList();
     },
     goToAddPage() {
       this.$router.push("/settings/user/add");
@@ -220,46 +205,122 @@ export default defineComponent({
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      const tempSelectedRow = generateDialogDetails(row);
-      for (const key in tempSelectedRow) {
-        this.selectedInfoRow[tempSelectedRow[key].originalKey] =
-          tempSelectedRow[key].value;
-      }
-      this.selectedInfoRow.role = ROLES[this.selectedInfoRow.role];
-      this.selectedInfoRow["MFA Status"] =
-        STATUS[this.selectedInfoRow.mfaStatus];
-      this.selectedInfoRow["Status"] = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow["Created At"] = moment(
-        this.selectedInfoRow.createdAt
-      ).format("YYYY-MM-DD HH:mm:ss");
+      this.selectedInfoRow = {
+        Id: row.id,
+        Username: row.username,
+        Email: row.email || "-",
+        Role: ROLES[row.role] || "-",
+        Group: row.group,
+        "Mfa Status": STATUS[row.mfa_status],
+        "Force Change Password": STATUS[row.is_password_force_reset] || "-",
+        Status: STATUS[row.status],
+        "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
+      };
       this.infoDialogStatus = true;
     },
-    submitEdit(data) {
-      console.log(data);
-      this.$q.notify({
-        message: `Edit "${data.username}" successfully!`,
-        type: "positive",
-      });
+    async submitEdit(data) {
+      this.$q.loading.show();
+      data.role = data.role.value;
+
+      await editUser(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Edit "${data.username}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitEnable() {
-      this.$q.notify({
-        message: `Enable "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async submitEditStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        username: this.selectedRow,
+        status: status || 0,
+      };
+      await editStatusUser(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitDisable() {
-      this.$q.notify({
-        message: `Disable "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async submitDelete() {
+      this.$q.loading.show();
+      const data = {
+        username: this.selectedRow,
+      };
+      await deleteUser(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Delete "${this.selectedRow}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitDelete() {
-      this.$q.notify({
-        message: `Delete "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async getList() {
+      this.$q.loading.show();
+      await getUserList()
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.users)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.users.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.users;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
+  computed: {},
   created() {
     this.initData();
   },

@@ -1,13 +1,16 @@
 from flask_cors import CORS
-from flask import Flask, abort
+from flask import Flask
 from flask import request
 from conf import config
 from const import response
 from controller.health import health_api
 from controller.user import user_api
+from controller.settings import setting_api
+from controller.command import command_api
 from log import logger as l
 from model.db_init import db
 from model.redis_init import redis_client
+# from apscheduler.schedulers import Scheduler
 
 import json
 
@@ -16,6 +19,8 @@ app = Flask(__name__)
 app.config.from_object(config.Config)
 app.register_blueprint(health_api)
 app.register_blueprint(user_api)
+app.register_blueprint(setting_api)
+app.register_blueprint(command_api)
 
 CORS(app, methods=["POST"], supports_credentials=True, max_age=600)
 
@@ -54,11 +59,6 @@ def catch_all_exception(e):
 
 @app.before_request
 def before_request():
-    l.info(
-        "request url: {url}, method: {method}, format: {format}, body: {body}".format(
-            url=request.url, method=request.method, format=request.content_type, body=str(
-                request.data)
-        ))
     if request.form:
         request_body = json.dumps(request.form)
         l.info("request url: {url}, method: {method}, format: form, body: {body}".format(

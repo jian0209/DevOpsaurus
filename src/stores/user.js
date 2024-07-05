@@ -8,7 +8,6 @@ import {
   setUsername,
   removeUsername,
 } from "src/utils/auth";
-import { getInfo } from "src/api/auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -38,10 +37,8 @@ export const useUserStore = defineStore("user", {
       this.username = username;
       setUsername(username);
     },
-    async getUserInfo() {
-      await getInfo().then((res) => {
-        console.log(res);
-      });
+    setUserInfo(userInfo) {
+      this.userInfo = userInfo;
     },
   },
 });

@@ -13,7 +13,7 @@
       />
     </div>
     <TableContainer
-      :rows="dummyData"
+      :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
       @disable:row="disableRow($event)"
@@ -29,24 +29,29 @@
       testBtnTxt="Test SSH Connection"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEdit"
+      @test:connection="testConnect"
     />
     <DialogComponent
       title="Enable Command"
       :dialogStatus="enableDialogStatus"
       :subtitle="`This Will Enable Command {${selectedRow}} Be Execute By User`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(1)"
     />
     <DialogComponent
       title="Disable Command"
       :dialogStatus="disableDialogStatus"
       :subtitle="`This Will Disable Command {${selectedRow}} Be Execute By User`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
       title="Delete Command"
       :dialogStatus="deleteDialogStatus"
       :subtitle="`This Will Delete Command Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitDelete"
     />
     <DialogComponent
       isInfoDialog
@@ -68,6 +73,13 @@ import { generateColumn } from "src/utils/util.js";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
+import {
+  getCommandList,
+  editCommand,
+  editStatusCommand,
+  deleteCommand,
+  testCommand,
+} from "src/api/settings.js";
 
 export default defineComponent({
   name: "SettingCommandPage",
@@ -80,23 +92,24 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: ref([
         {
-          id: 1,
-          name: "production",
-          host: "localhost",
-          username: "root",
-          sshPort: "3306",
-          command: "curl http://localhost:8080/api/v1/health",
-          status: 1,
-          createdAt: 1719553933000,
+          id: null,
+          name: null,
+          host: null,
+          username: null,
+          ssh_port: null,
+          command: null,
+          status: null,
+          created_at: null,
         },
-      ],
+      ]),
       formList: [
         {
           label: "Name",
           model: "name",
           type: "text",
+          readonly: true,
         },
         {
           label: "Host",
@@ -110,13 +123,13 @@ export default defineComponent({
         },
         {
           label: "SSH Key",
-          model: "sshKey",
+          model: "ssh_key",
           type: "textarea",
           hint: "* SSH Key Should Be In PEM Format",
         },
         {
           label: "SSH Port",
-          model: "sshPort",
+          model: "ssh_port",
           type: "text",
         },
         {
@@ -138,7 +151,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(this.rowData, false, true, true);
+      this.getList();
     },
     goToAddPage() {
       this.$router.push("/settings/command/add");
@@ -169,14 +183,134 @@ export default defineComponent({
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedInfoRow[key] = row[key];
-      }
-      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow.createdAt = moment(
-        this.selectedInfoRow.createdAt
-      ).format("YYYY-MM-DD HH:mm:ss");
+      this.selectedInfoRow = {
+        Name: row.name,
+        Host: row.host,
+        Username: row.username,
+        "SSH Port": row.ssh_port,
+        Command: row.command,
+        Status: STATUS[row.status],
+        "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
+      };
       this.infoDialogStatus = true;
+    },
+    async submitEdit(data) {
+      this.$q.loading.show();
+      await editCommand(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Edit "${data.name}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitEditStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+        status: status || 0,
+      };
+      await editStatusCommand(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitDelete() {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+      };
+      await deleteCommand(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Delete "${this.selectedRow}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async getList() {
+      this.$q.loading.show();
+      await getCommandList()
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.commands)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.commands.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.commands;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+    },
+    async testConnect() {
+      this.$q.loading.show();
+      console.log(this.formListDetails);
+      await testCommand(this.formListDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.testSuccess", { platform: "SSH" }),
+            type: "positive",
+          });
+        })
+        .finally(() => this.$q.loading.hide());
     },
   },
   created() {

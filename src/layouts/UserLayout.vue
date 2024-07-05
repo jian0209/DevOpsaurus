@@ -10,6 +10,9 @@
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
+        <q-toolbar-title class="toolbar-title">
+          {{ username }}
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -43,6 +46,8 @@
 <script>
 import { defineComponent, ref } from "vue";
 import SidebarLink from "components/SidebarLink.vue";
+import { getInfo, logout } from "src/api/auth";
+import { useUserStore } from "src/stores/user";
 
 export default defineComponent({
   name: "UserLayout",
@@ -242,6 +247,9 @@ export default defineComponent({
       ],
       leftDrawerOpen: ref(false),
       activeLink: ref(""),
+      getInfoInterval: null,
+      userStore: useUserStore(),
+      username: ref(""),
     };
   },
   methods: {
@@ -280,9 +288,42 @@ export default defineComponent({
         }
       });
     },
+    getUserInfo() {
+      getInfo().then((res) => {
+        if (res.code !== 0) {
+          logout();
+          this.userStore.logout();
+          this.$router.push({ path: "/login" });
+          this.$q.notify({
+            message: this.$t("dialog.sessionExpired"),
+            type: "negative",
+          });
+          return;
+        }
+
+        this.userStore.setUserInfo(res.data);
+        this.username = res.data.username;
+      });
+    },
+    checkUser() {
+      this.getInfoInterval = setInterval(() => {
+        this.getUserInfo();
+      }, 15000);
+    },
+    clearUserCheck() {
+      if (this.getInfoInterval) {
+        clearInterval(this.getInfoInterval);
+        this.getInfoInterval = null;
+      }
+    },
   },
   created() {
     this.initActiveLink();
+    this.getUserInfo();
+    this.checkUser();
+  },
+  unmounted() {
+    this.clearUserCheck();
   },
 });
 </script>

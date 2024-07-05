@@ -51,8 +51,8 @@ def reset_admin():
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/login', methods=['POST'])
 def login():
     try:
-        username = str(request.json.get("username"))
-        password = str(request.json.get("password"))
+        username = str(request.json.get("username", ""))
+        password = str(request.json.get("password", ""))
         encrypted_password = encrypt_password(password)
 
         log_user_info = {
@@ -132,7 +132,7 @@ def login():
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/get_mfa_img', methods=['POST'])
 def get_mfa_img():
     try:
-        username = str(request.json.get("username"))
+        username = str(request.json.get("username", ""))
         user = User.query.filter_by(username=username).first()
         if not user:
             l.error(f"User {username} not found")
@@ -153,8 +153,8 @@ def get_mfa_img():
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/mfa_login', methods=['POST'])
 def mfa_login():
     try:
-        username = str(request.json.get("username"))
-        mfa_token = str(request.json.get("mfa_token"))
+        username = str(request.json.get("username", ""))
+        mfa_token = str(request.json.get("mfa_token", ""))
 
         token = generate_random_string(20)
 
@@ -256,21 +256,40 @@ def mfa_login():
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/reset_password', methods=['POST'])
 def reset_password():
     try:
-        token = str(request.headers.get("D-token"))
-        is_allow = check_user_account(token)
 
-        if not is_allow:
-            l.error(f"token {token} not found")
-            return response.get_response(response.USER_NOT_FOUND)
-
-        username = str(request.json.get("username"))
-        password = str(request.json.get("password"))
-        encrypted_password = encrypt_password(password)
+        username = str(request.json.get("username", ""))
+        old_password = str(request.json.get("old_password", ""))
+        new_password = str(request.json.get("new_password", ""))
+        encrypted_password = encrypt_password(new_password)
 
         user = User.query.filter_by(username=username).first()
         if not user:
             l.error(f"User {username} not found")
+            system_log_info = {
+                "username": username,
+                "role": "-",
+                "action": "Reset Password",
+                "source": "User",
+                "description": f"User {username} failed to reset password, user not found",
+                "created_at": int(time.time())
+            }
+            save_system_log(system_log_info)
             return response.get_response(response.USER_NOT_FOUND)
+
+        # check old password
+        if old_password != "" and user.password != encrypt_password(old_password):
+            l.error(f"User {username} old password is incorrect")
+            system_log_info = {
+                "username": username,
+                "role": user.role,
+                "action": "Reset Password",
+                "source": "User",
+                "description": f"User {username} failed to reset password, old password is incorrect",
+                "created_at": int(time.time())
+            }
+            save_system_log(system_log_info)
+            return response.get_response(response.INVALID_OLD_PASSWORD)
+
         # set new password
         user.password = encrypted_password
         # disable force reset password
@@ -340,13 +359,13 @@ def add():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        username = str(request.json.get("username"))
-        password = str(request.json.get("password"))
-        email = str(request.json.get("email"))
-        group = str(request.json.get("group"))
-        role = int(request.json.get("role"))
-        mfa_status = int(request.json.get("mfa_status"))
-        is_password_force_reset = const.DISABLED
+        username = str(request.json.get("username", ""))
+        password = str(request.json.get("password", ""))
+        email = str(request.json.get("email", ""))
+        group = str(request.json.get("group", ""))
+        role = int(request.json.get("role", 0))
+        mfa_status = int(request.json.get("mfa_status", 0))
+        is_password_force_reset = const.ENABLED
         encrypted_password = encrypt_password(password)
 
         # Check if user already exists
@@ -397,22 +416,26 @@ def edit_user():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        username = str(request.json.get("username"))
-        password = str(request.json.get("password"))
-        encrypted_password = encrypt_password(password)
-        email = str(request.json.get("email"))
-        group = str(request.json.get("group"))
-        role = int(request.json.get("role"))
-        mfa_status = int(request.json.get("mfa_status"))
+        username = str(request.json.get("username", ""))
+        password = str(request.json.get("password", None))
+        if password != "None":
+            encrypted_password = encrypt_password(password)
+        else:
+            encrypted_password = None
+        email = str(request.json.get("email", ""))
+        group = str(request.json.get("group", ""))
+        role = int(request.json.get("role", 0))
+        mfa_status = int(request.json.get("mfa_status", 0))
         is_password_force_reset = int(
-            request.json.get("is_password_force_reset"))
+            request.json.get("is_password_force_reset", 0))
 
         user = User.query.filter_by(username=username).first()
         if not user:
             l.error(f"User {username} not found")
             return response.get_response(response.USER_NOT_FOUND)
 
-        user.password = encrypted_password
+        if encrypted_password:
+            user.password = encrypted_password
         user.email = email
         user.group = group
         user.role = role
@@ -446,7 +469,7 @@ def delete_user():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        username = str(request.json.get("username"))
+        username = str(request.json.get("username", ""))
 
         user = User.query.filter_by(username=username).first()
         if not user:
@@ -484,8 +507,8 @@ def edit_status_user():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        username = str(request.json.get("username"))
-        status = int(request.json.get("status"))
+        username = str(request.json.get("username", ""))
+        status = int(request.json.get("status", 0))
         status_name = "Enabled" if status == 1 else "Disabled"
 
         user = User.query.filter_by(username=username).first()
@@ -536,7 +559,8 @@ def get_list():
                 "role": user.role,
                 "mfa_status": user.mfa_status,
                 "status": user.status,
-                "created_at": user.created_at
+                "is_password_force_reset": user.is_password_force_reset,
+                "created_at": user.created_at * 1000
             })
 
         return response.get_response(response.SUCCESS, {"users": user_list})

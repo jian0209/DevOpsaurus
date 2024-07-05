@@ -14,6 +14,7 @@
 <script>
 import { defineComponent } from "vue";
 import TelegramCont from "src/components/SettingsAddCont.vue";
+import { getSettings, saveSettings, testSettings } from "src/api/settings";
 
 export default defineComponent({
   name: "SettingTelegramPage",
@@ -25,7 +26,7 @@ export default defineComponent({
       formList: [
         {
           label: "Bot Token",
-          model: "botToken",
+          model: "bot_token",
           type: "text",
           hint: "Hint: T03M53Y0AG1",
         },
@@ -43,27 +44,73 @@ export default defineComponent({
         },
       ],
       slackDetails: {
-        botToken: null,
-        chatId: null,
+        bot_token: null,
+        channel: null,
         markdown: true,
       },
     };
   },
   methods: {
-    saveSlack() {
-      console.log(this.slackDetails);
-      this.$q.notify({
-        message: `Configuration Saved!`,
-        type: "positive",
-      });
+    async testSlack() {
+      this.$q.loading.show();
+      await testSettings("slack", this.slackDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.testSent", { platform: "Slack" }),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
-    testSlack() {
-      console.log(this.slackDetails);
-      this.$q.notify({
-        message: `Slack Message Sent!`,
-        type: "positive",
-      });
+    async saveSlack() {
+      this.$q.loading.show();
+      await saveSettings("slack", this.slackDetails)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: this.$t("notify.configurationSaved"),
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
+    async getSlack() {
+      this.$q.loading.show();
+      await getSettings("slack")
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.slackDetails = res.data;
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+    },
+  },
+  created() {
+    this.getSlack();
   },
 });
 </script>

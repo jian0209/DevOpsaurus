@@ -1,6 +1,7 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 import { useUserStore } from "src/stores/user";
+import { useQuasar } from "quasar";
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -51,9 +52,14 @@ api.interceptors.response.use(
     });
   },
   (error) => {
-    // const headers = error.response.headers;
-    // const msg = headers["x-error-msg"];
-    // const code = headers["x-error-ret"];
+    if (!error.response) {
+      return Promise.reject({
+        data: error,
+        code: 9999,
+        msg: "Network Error",
+        success: false,
+      });
+    }
 
     return Promise.reject({
       data: error.response,

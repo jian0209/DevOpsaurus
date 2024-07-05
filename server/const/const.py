@@ -5,6 +5,11 @@ VERSION_API = "v1"
 
 # api key
 USER_API = "user"
+REDIS_API = "redis"
+NODES_API = "nodes"
+DATABASE_API = "database"
+COMMAND_API = "command"
+SETTING_API = "settings"
 
 # redis key
 USER_TOKEN = "user_token"
