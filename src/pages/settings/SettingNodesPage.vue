@@ -6,14 +6,14 @@
     />
     <div class="button-cont">
       <UsualButton
-        label="Add Node Connection"
+        :label="$t('settingsPage.button.add', { name: 'Node Connection' })"
         color="info"
         icon="add_circle_outline"
         @action:click="goToAddPage"
       />
     </div>
     <TableContainer
-      :rows="dummyData"
+      :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
       @disable:row="disableRow($event)"
@@ -28,24 +28,28 @@
       :formListDetails="formListDetails"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEdit"
     />
     <DialogComponent
       title="Enable Nodes"
       :dialogStatus="enableDialogStatus"
       :subtitle="`This Will Enable Nodes {${selectedRow}} Be Monitored`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(1)"
     />
     <DialogComponent
       title="Disable Nodes"
       :dialogStatus="disableDialogStatus"
       :subtitle="`This Will Disable Nodes {${selectedRow}} Be Monitored`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
       title="Delete Nodes"
       :dialogStatus="deleteDialogStatus"
       :subtitle="`This Will Delete Nodes Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitDelete"
     />
     <DialogComponent
       isInfoDialog
@@ -66,6 +70,12 @@ import DialogComponent from "src/components/Dialog.vue";
 import { CRYPTO_CURRENCY_GROUP, STATUS } from "src/utils/constants.js";
 import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
+import {
+  getNodesList,
+  editNode,
+  editStatusNode,
+  deleteNode,
+} from "src/api/settings";
 import "src/css/settingsScreen.scss";
 
 export default defineComponent({
@@ -79,30 +89,16 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: [
         {
-          id: 1,
-          name: "ETH - Tung Ann",
-          groupName: "ETH",
-          groupUrl:
-            "https://mainnet.coinsdo.com/monitor/nodes/list?network=mainnet",
-          getUrl:
-            "https://mainnet.coinsdo.com/monitor/nodes/check?network=mainnet&id=1",
-          targetUrl: "http://203.117.22.213:10001/eth-achavie",
-          status: 1,
-          createdAt: 1719553933000,
-        },
-        {
-          id: 2,
-          name: "ETH - International Plaza",
-          groupName: "ETH",
-          groupUrl:
-            "https://mainnet.coinsdo.com/monitor/nodes/list?network=mainnet",
-          getUrl:
-            "https://mainnet.coinsdo.com/monitor/nodes/check?network=mainnet&id=1",
-          targetUrl: "http://122.11.149.168:10001/eth-achavie",
-          status: 1,
-          createdAt: 1719553933000,
+          id: null,
+          name: null,
+          group_name: null,
+          group_url: null,
+          target_url: null,
+          fetch_parameter: null,
+          status: null,
+          created_at: null,
         },
       ],
       formList: [
@@ -110,33 +106,29 @@ export default defineComponent({
           label: "Name",
           model: "name",
           type: "text",
+          readonly: true,
         },
         {
           label: "Group Name",
-          model: "groupName",
+          model: "group_name",
           type: "select",
           option: CRYPTO_CURRENCY_GROUP,
         },
         {
           label: "Group URL",
-          model: "groupUrl",
-          type: "text",
-        },
-        {
-          label: "Get URL",
-          model: "getUrl",
+          model: "group_url",
           type: "text",
         },
         {
           label: "Target URL",
-          model: "targetUrl",
+          model: "target_url",
           type: "text",
         },
-        // {
-        //   label: "SSH Key",
-        //   model: "sshKey",
-        //   type: "textarea",
-        // },
+        {
+          label: "Fetch Parameter",
+          model: "fetch_parameter",
+          type: "text",
+        },
       ],
       formListDetails: ref({}),
       editDialogStatus: ref(false),
@@ -150,7 +142,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(this.rowData, false, true, true);
+      this.getList();
     },
     goToAddPage() {
       this.$router.push("/settings/nodes/add");
@@ -169,26 +162,129 @@ export default defineComponent({
       this.editDialogStatus = true;
     },
     disableRow(row) {
-      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.selectedRow = row.name;
       this.disableDialogStatus = true;
     },
     enableRow(row) {
-      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.selectedRow = row.name;
       this.enableDialogStatus = true;
     },
     deleteRow(row) {
-      this.selectedRow = `${row.groupName} - ${row.name}`;
+      this.selectedRow = row.name;
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedInfoRow[key] = row[key];
-      }
-      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow.createdAt = moment(
-        this.selectedInfoRow.createdAt
-      ).format("YYYY-MM-DD HH:mm:ss");
+      this.selectedInfoRow = {
+        Name: row.name,
+        "Group Name": row.group_name,
+        "Group URL": row.group_url,
+        "Target URL": row.target_url,
+        "Fetch Parameter": row.fetch_parameter,
+        Status: STATUS[row.status],
+        "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
+      };
       this.infoDialogStatus = true;
+    },
+    async submitEdit(data) {
+      this.$q.loading.show();
+      data.group_name = data.group_name.value;
+      await editNode(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Edit "${data.name}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitEditStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+        status: status || 0,
+      };
+      await editStatusNode(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitDelete() {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+      };
+      await deleteNode(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Delete "${this.selectedRow}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async getList() {
+      this.$q.loading.show();
+      await getNodesList()
+        .then((res) => {
+          console.log(res);
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.nodes)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.nodes.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.nodes;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
   created() {

@@ -1,7 +1,7 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 import { useUserStore } from "src/stores/user";
-import { useQuasar } from "quasar";
+import { Notify } from "quasar";
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -53,6 +53,11 @@ api.interceptors.response.use(
   },
   (error) => {
     if (!error.response) {
+      Notify.create({
+        color: "negative",
+        position: "top",
+        message: "Network Error",
+      });
       return Promise.reject({
         data: error,
         code: 9999,

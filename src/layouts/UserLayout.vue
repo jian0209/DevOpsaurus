@@ -179,13 +179,13 @@ export default defineComponent({
               routeTo: "/settings/redis",
               activeLink: false,
             },
-            {
-              title: "UPS",
-              name: "SettingsUPS",
-              icon: "battery_5_bar",
-              routeTo: "/settings/ups",
-              activeLink: false,
-            },
+            // {
+            //   title: "UPS",
+            //   name: "SettingsUPS",
+            //   icon: "battery_5_bar",
+            //   routeTo: "/settings/ups",
+            //   activeLink: false,
+            // },
             {
               title: "Nodes",
               name: "SettingsNodes",

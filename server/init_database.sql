@@ -50,6 +50,49 @@ CREATE TABLE `devopsaurus`.`d_system_log` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `devopsaurus`.`d_redis` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
+  `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
+  `port` int DEFAULT 6379 NOT NULL COMMENT 'port for redis',
+  `auth` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'password for redis',
+  `database` int DEFAULT 0 NOT NULL COMMENT 'database for redis',
+  `get` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'get key',
+  `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
+  `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
+  PRIMARY KEY (`id`), -- 将 id 字段设置为主键
+  INDEX idx_name (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `devopsaurus`.`d_nodes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
+  `group_name` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'group name to which the node belongs',
+  `group_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'group url to which the node belongs',
+  `target_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'target url for node',
+  `fetch_parameter` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'fetch parameter for node',
+  `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
+  `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
+  PRIMARY KEY (`id`), -- 将 id 字段设置为主键
+  INDEX idx_name (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `devopsaurus`.`d_database` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
+  `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
+  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'password',
+  `port` int DEFAULT 3306 NOT NULL COMMENT 'port for database',
+  `database` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'database name',
+  `table` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'table name',
+  `parameter` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'parameter name',
+  `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
+  `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
+  PRIMARY KEY (`id`), -- 将 id 字段设置为主键
+  INDEX idx_name (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE `devopsaurus`.`d_command` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'command name (unique)',
@@ -84,6 +127,6 @@ CREATE TABLE `devopsaurus`.`d_system_integration` (
   `slack_channel` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'slack channel',
   `slack_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'slack token',
   PRIMARY KEY (`id`) -- 将 id 字段设置为主键
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `devopsaurus`.`d_system_integration` VALUES (1, 0, 0, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null);

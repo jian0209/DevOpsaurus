@@ -255,7 +255,7 @@ export default defineComponent({
       this.$emit("submit:edit", this.formListDetails);
     },
     testConnection() {
-      this.$emit("test:connection");
+      this.$emit("test:connection", this.formListDetails);
     },
     searchData() {
       const parameter = {};

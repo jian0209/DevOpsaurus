@@ -269,7 +269,7 @@ def reset_password():
                 "username": username,
                 "role": "-",
                 "action": "Reset Password",
-                "source": "User",
+                "source": "Settings",
                 "description": f"User {username} failed to reset password, user not found",
                 "created_at": int(time.time())
             }
@@ -283,7 +283,7 @@ def reset_password():
                 "username": username,
                 "role": user.role,
                 "action": "Reset Password",
-                "source": "User",
+                "source": "Settings",
                 "description": f"User {username} failed to reset password, old password is incorrect",
                 "created_at": int(time.time())
             }
@@ -392,7 +392,7 @@ def add():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Add User",
-            "source": "User",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} added User {username}",
             "created_at": time_now
         }
@@ -448,7 +448,7 @@ def edit_user():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Edit User",
-            "source": "User",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} edited User {username}",
             "created_at": int(time.time())
         })
@@ -484,7 +484,7 @@ def delete_user():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Delete User",
-            "source": "User",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} deleted User {username}",
             "created_at": int(time.time())
         })
@@ -525,7 +525,7 @@ def edit_status_user():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Edit User Status",
-            "source": "User",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} edited User {username} status to {status_name}",
             "created_at": int(time.time())
         })

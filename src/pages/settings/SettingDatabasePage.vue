@@ -1,19 +1,19 @@
 <template>
   <div>
     <TitleContainer
-      title="Database Management"
-      subtitle="Manage Database Connection (Currently only support MySQL)"
+      :title="$t('settingsPage.database.title')"
+      :subtitle="$t('settingsPage.database.subtitle')"
     />
     <div class="button-cont">
       <UsualButton
-        label="Add Database Connection"
+        :label="$t('settingsPage.button.add', { name: 'Database Connection' })"
         color="info"
         icon="add_circle_outline"
         @action:click="goToAddPage"
       />
     </div>
     <TableContainer
-      :rows="dummyData"
+      :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
       @disable:row="disableRow($event)"
@@ -22,35 +22,55 @@
       @info:row="infoRow($event)"
     />
     <DialogComponent
-      title="Edit database"
+      :title="$t('settingsPage.dialog.edit.title', { name: 'Database' })"
       :dialogStatus="editDialogStatus"
       :formList="formList"
       :formListDetails="formListDetails"
-      testBtnTxt="Get Databases and Tables"
+      :testBtnTxt="$t('settingsPage.database.test')"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEdit"
+      @test:connection="getTablesForOption"
     />
     <DialogComponent
-      title="Enable Database"
+      :title="$t('settingsPage.dialog.enable.title', { name: 'Database' })"
       :dialogStatus="enableDialogStatus"
-      :subtitle="`This Will Enable Database {${selectedRow}} Be View or Edit By User`"
+      :subtitle="
+        $t('settingsPage.dialog.enable.subtitle', {
+          name: 'Database',
+          target: selectedRow,
+        })
+      "
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(1)"
     />
     <DialogComponent
-      title="Disable Database"
+      :title="$t('settingsPage.dialog.disable.title', { name: 'Database' })"
       :dialogStatus="disableDialogStatus"
-      :subtitle="`This Will Disable Database {${selectedRow}} Be View or Edit By User`"
+      :subtitle="
+        $t('settingsPage.dialog.disable.subtitle', {
+          name: 'Database',
+          target: selectedRow,
+        })
+      "
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
-      title="Delete Database"
+      :title="$t('settingsPage.dialog.remove.title', { name: 'Database' })"
       :dialogStatus="deleteDialogStatus"
-      :subtitle="`This Will Delete Database Record {${selectedRow}}`"
+      :subtitle="
+        $t('settingsPage.dialog.remove.subtitle', {
+          name: 'Database',
+          target: selectedRow,
+        })
+      "
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitDelete"
     />
     <DialogComponent
       isInfoDialog
-      title="Database Information Details"
+      :title="$t('settingsPage.dialog.info.title', { name: 'Database' })"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedInfoRow"
       @update:dialogStatus="updateDialogStatus"
@@ -67,7 +87,17 @@ import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
+import {
+  getDatabaseList,
+  editDatabase,
+  editStatusDatabase,
+  deleteDatabase,
+  getDatabases,
+  getTables,
+} from "src/api/settings";
+import { useQuasar } from "quasar";
 import "src/css/settingsScreen.scss";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "SettingDatabasePage",
@@ -77,82 +107,142 @@ export default defineComponent({
     UsualButton,
     DialogComponent,
   },
+  setup() {
+    const $q = useQuasar();
+    const { t } = useI18n();
+    const formList = ref([
+      {
+        label: "Name",
+        model: "name",
+        type: "text",
+        readonly: true,
+      },
+      {
+        label: "Host",
+        model: "host",
+        type: "text",
+      },
+      {
+        label: "Port",
+        model: "port",
+        type: "text",
+        placeholder: "Default: 3306",
+      },
+      {
+        label: "Username",
+        model: "username",
+        type: "text",
+      },
+      {
+        label: "Password",
+        model: "password",
+        type: "text",
+      },
+      {
+        label: "Database",
+        model: "database",
+        type: "select",
+        option: [],
+      },
+      {
+        label: "Table",
+        model: "table",
+        type: "select",
+        option: [],
+      },
+      {
+        label: "Parameter (WHERE)",
+        model: "parameter",
+        type: "textarea",
+        placeholder: "id IN {ids} AND / OR name = {name}",
+        hint: "* Eg: id IN {variable1} AND name IN {variable2}",
+      },
+    ]);
+    const databaseDetails = ref({
+      name: null,
+      host: null,
+      port: null,
+      username: null,
+      password: null,
+      database: null,
+      table: null,
+    });
+
+    const getTablesForOption = async (row) => {
+      $q.loading.show();
+      const data = { ...row };
+      data.database = row.database.value;
+      await getTables(data)
+        .then((res) => {
+          formList.value[6].option = [];
+          if (res.code !== 0) {
+            $q.notify({
+              message: t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          for (const table of res.data.tables) {
+            formList.value[6].option.push({
+              label: table,
+              value: table,
+            });
+          }
+        })
+        .finally(() => {
+          $q.loading.hide();
+        });
+    };
+
+    const getDatabasesForOption = async (data) => {
+      // get databases
+      await getDatabases(data)
+        .then((res) => {
+          formList.value[5].option = [];
+          if (res.code !== 0) {
+            $q.notify({
+              message: t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          for (const db of res.data.databases) {
+            formList.value[5].option.push({
+              label: db,
+              value: db,
+            });
+          }
+        })
+        .finally(() => {
+          $q.loading.hide();
+        });
+    };
+    return {
+      formList,
+      databaseDetails,
+      getTablesForOption,
+      getDatabasesForOption,
+    };
+  },
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: ref([
         {
-          id: 1,
-          name: "production",
-          host: "localhost",
-          port: "3306",
-          username: "root",
-          database: "coinsdo_deposit",
-          table: "t_deposit_record",
-          parameter: "id IN {ids} AND name = {name}",
-          status: 1,
-          createdAt: 1719553933000,
+          id: null,
+          name: null,
+          host: null,
+          port: null,
+          username: null,
+          database: null,
+          table: null,
+          parameter: null,
+          status: null,
+          created_at: null,
         },
-      ],
-      formList: [
-        {
-          label: "Name",
-          model: "name",
-          type: "text",
-        },
-        {
-          label: "Host",
-          model: "host",
-          type: "text",
-        },
-        {
-          label: "Username",
-          model: "username",
-          type: "text",
-        },
-        {
-          label: "Password",
-          model: "password",
-          type: "text",
-        },
-        {
-          label: "Database",
-          model: "database",
-          type: "select",
-          option: [
-            {
-              label: "Database 1",
-              value: "database1",
-            },
-            {
-              label: "Database 2",
-              value: "database2",
-            },
-          ],
-        },
-        {
-          label: "Table",
-          model: "table",
-          type: "select",
-          option: [
-            {
-              label: "Table 1",
-              value: "table1",
-            },
-            {
-              label: "Table 2",
-              value: "table2",
-            },
-          ],
-        },
-        {
-          label: "Parameter (WHERE)",
-          model: "parameter",
-          type: "textarea",
-          placeholder: "id IN {ids} AND / OR name = {name}",
-          hint: "* Use comma to split (AND LOGIC), Eg: id IN {variable1} AND name IN {variable2}",
-        },
-      ],
+      ]),
       formListDetails: ref({}),
       editDialogStatus: ref(false),
       enableDialogStatus: ref(false),
@@ -165,7 +255,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(this.rowData, false, true, true);
+      this.getList();
     },
     goToAddPage() {
       this.$router.push("/settings/database/add");
@@ -178,9 +269,8 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     editRow(row) {
-      for (const key in row) {
-        this.formListDetails[key] = row[key];
-      }
+      this.formListDetails = { ...row };
+      this.getDatabasesForOption(this.formListDetails);
       this.editDialogStatus = true;
     },
     disableRow(row) {
@@ -196,14 +286,119 @@ export default defineComponent({
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedInfoRow[key] = row[key];
-      }
-      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow.createdAt = moment(
-        this.selectedInfoRow.createdAt
-      ).format("YYYY-MM-DD HH:mm:ss");
+      this.selectedInfoRow = {
+        Name: row.name,
+        Host: row.host,
+        Port: row.port,
+        Username: row.username,
+        Database: row.database,
+        Table: row.table,
+        Parameter: row.parameter,
+        Status: STATUS[row.status],
+        "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
+      };
       this.infoDialogStatus = true;
+    },
+    async submitEdit(data) {
+      this.$q.loading.show();
+      data.database = data.database.value;
+      data.table = data.table.value;
+      await editDatabase(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Edit "${data.name}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitEditStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+        status: status || 0,
+      };
+      await editStatusDatabase(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitDelete() {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+      };
+      await deleteDatabase(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Delete "${this.selectedRow}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async getList() {
+      this.$q.loading.show();
+      await getDatabaseList()
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.databases)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.databases.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.databases;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
   created() {

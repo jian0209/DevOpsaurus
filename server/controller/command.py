@@ -2,7 +2,7 @@ import time
 from flask import Blueprint, request
 from const import response
 from log import logger as l
-from model.command import Command
+from model.command_model import Command
 import const.const as const
 from utils.credential import check_admin_account
 from model.db_init import db
@@ -55,7 +55,7 @@ def add():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Add Command",
-            "source": "Command",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} added Command {name}",
             "created_at": time_now
         }
@@ -98,13 +98,13 @@ def edit_command():
         command.command = command_param
         db.session.commit()
 
-        l.info(f"Admin: {admin_info['username']} edited Command {username}")
+        l.info(f"Admin: {admin_info['username']} edited Command {name}")
         save_system_log({
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Edit Command",
-            "source": "Command",
-            "description": f"Admin: {admin_info['username']} edited Command {username}",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} edited Command {name}",
             "created_at": int(time.time())
         })
 
@@ -128,7 +128,7 @@ def delete_command():
 
         command = Command.query.filter_by(name=name).first()
         if not command:
-            l.error(f"Command {command} not found")
+            l.error(f"Command {name} not found")
             return response.get_response(response.COMMAND_NOT_FOUND)
 
         db.session.delete(command)
@@ -139,8 +139,8 @@ def delete_command():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Delete Command",
-            "source": "Command",
-            "description": f"Admin: {admin_info['username']} deleted Command {command}",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} deleted Command {name}",
             "created_at": int(time.time())
         })
 
@@ -180,7 +180,7 @@ def edit_status_command():
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Edit Command Status",
-            "source": "Command",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} edited Command {name} status to {status_name}",
             "created_at": int(time.time())
         })

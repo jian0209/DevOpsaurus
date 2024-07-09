@@ -7,6 +7,8 @@ from controller.health import health_api
 from controller.user import user_api
 from controller.settings import setting_api
 from controller.command import command_api
+from controller.database import database_api
+from controller.nodes import nodes_api
 from log import logger as l
 from model.db_init import db
 from model.redis_init import redis_client
@@ -21,6 +23,8 @@ app.register_blueprint(health_api)
 app.register_blueprint(user_api)
 app.register_blueprint(setting_api)
 app.register_blueprint(command_api)
+app.register_blueprint(database_api)
+app.register_blueprint(nodes_api)
 
 CORS(app, methods=["POST"], supports_credentials=True, max_age=600)
 

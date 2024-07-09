@@ -56,6 +56,38 @@ export default {
       },
     },
   },
+  settingsPage: {
+    database: {
+      title: "Database Settings Page",
+      subtitle: "Configure Database Connection (Currently only support MySQL)",
+      test: "Get Databases and Tables",
+      parameterPlaceholder: "id IN {ids} AND / OR name = {name}",
+      parameterHint: "* Eg: id IN {variable1} AND name IN {variable2}",
+    },
+    button: {
+      add: "Add {name}",
+    },
+    dialog: {
+      edit: {
+        title: "Edit {name}",
+      },
+      enable: {
+        title: "Enable {name}",
+        subtitle: "This will Enable {name} <{target}> Be View or Edit By User",
+      },
+      disable: {
+        title: "Disable {name}",
+        subtitle: "This will Disable {name} <{target}> Be View or Edit By User",
+      },
+      remove: {
+        title: "Remove {name}",
+        subtitle: "This will Remove {name} <{target}> From Database",
+      },
+      info: {
+        title: "{name} Information Details",
+      },
+    },
+  },
   dialog: {
     welcome: "Welcome {name}!!!",
     logout: "Logout Successfully",
@@ -147,6 +179,11 @@ export default {
     1018: "SSH authentication error",
     1019: "SSH connection error",
     1020: "SSH exception",
+    1021: "Database name existed",
+    1022: "Database not found",
+    1023: "Database connection failed",
+    1024: "Nodes existed",
+    1025: "Nodes not found",
 
     9001: "System internal exception",
     9002: "Page not found",

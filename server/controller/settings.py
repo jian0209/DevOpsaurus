@@ -128,7 +128,7 @@ def save_integration(page: str):
             "username": admin_info["username"],
             "role": admin_info["role"],
             "action": "Save Integration",
-            "source": "Integration",
+            "source": "Settings",
             "description": f"Admin: {admin_info['username']} saved new {page}",
             "created_at": int(time.time())
         }

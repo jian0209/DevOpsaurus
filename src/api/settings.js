@@ -38,10 +38,50 @@ export function getNodesList() {
   return api.post("/nodes/list", {});
 }
 
+export function editNode(data) {
+  return api.post("/nodes/edit", data);
+}
+
+export function editStatusNode(data) {
+  return api.post("/nodes/edit_status", data);
+}
+
+export function deleteNode(data) {
+  return api.post("/nodes/delete", data);
+}
+
+export function addNode(data) {
+  return api.post("/nodes/add", data);
+}
+
 //////////////// end nodes ////////////////
 
 export function getDatabaseList() {
   return api.post("/database/list", {});
+}
+
+export function editDatabase(data) {
+  return api.post("/database/edit", data);
+}
+
+export function editStatusDatabase(data) {
+  return api.post("/database/edit_status", data);
+}
+
+export function deleteDatabase(data) {
+  return api.post("/database/delete", data);
+}
+
+export function addDatabase(data) {
+  return api.post("/database/add", data);
+}
+
+export function getDatabases(data) {
+  return api.post("/database/get_databases", data);
+}
+
+export function getTables(data) {
+  return api.post("/database/get_tables", data);
 }
 
 //////////////// end database ////////////////

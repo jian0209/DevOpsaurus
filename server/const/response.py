@@ -19,6 +19,14 @@ COMMAND_NOT_FOUND = 1017
 SSH_AUTH_ERROR = 1018
 SSH_CONNECTION_ERROR = 1019
 SSH_EXCEPTION = 1020
+DATABASE_EXISTED = 1021
+DATABASE_NOT_FOUND = 1022
+DATABASE_CONN_ERROR = 1023
+NODES_EXISTED = 1024
+NODES_NOT_FOUND = 1025
+REDIS_EXISTED = 1026
+REDIS_NOT_FOUND = 1027
+REDIS_CONN_ERROR = 1028
 
 SYSTEM_INTERNAL_EXCEPTION = 9001
 PAGE_NOT_FOUND = 9002
@@ -48,6 +56,14 @@ response_const = {
     1018: "SSH authentication error",
     1019: "SSH connection error",
     1020: "SSH exception",
+    1021: "Database name existed",
+    1022: "Database not found",
+    1023: "Database connection failed",
+    1024: "Nodes existed",
+    1025: "Nodes not found",
+    1026: "Redis existed",
+    1027: "Redis not found",
+    1028: "Redis connection failed",
 
     9001: "System internal exception",
     9002: "Page not found",

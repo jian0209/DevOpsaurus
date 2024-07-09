@@ -2,102 +2,201 @@
   <SettingsAddCont
     title="Add Database Connection"
     addBtnTxt="Add Database Connection"
-    testBtnTxt="Get Databases and Tables"
+    testBtnTxt="Get Databases and Tables or Test Parameter"
     :formList="formList"
     :formListDetails="databaseDetails"
     @submit:add="add"
+    @test:connection="getDatabaseAndTable"
   />
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
+import { addDatabase, getDatabases, getTables } from "src/api/settings";
 import "src/css/settingsScreen.scss";
+import { useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "DatabaseAddPage",
   components: {
     SettingsAddCont,
   },
-  data() {
-    return {
-      formList: [
-        {
-          label: "Name",
-          model: "name",
-          type: "text",
-        },
-        {
-          label: "Host",
-          model: "host",
-          type: "text",
-        },
-        {
-          label: "Username",
-          model: "username",
-          type: "text",
-        },
-        {
-          label: "Password",
-          model: "password",
-          type: "text",
-        },
-        {
-          label: "Database",
-          model: "database",
-          type: "select",
-          option: [
-            {
-              label: "Database 1",
-              value: "database1",
-            },
-            {
-              label: "Database 2",
-              value: "database2",
-            },
-          ],
-        },
-        {
-          label: "Table",
-          model: "table",
-          type: "select",
-          option: [
-            {
-              label: "Table 1",
-              value: "table1",
-            },
-            {
-              label: "Table 2",
-              value: "table2",
-            },
-          ],
-        },
-        {
-          label: "Parameter (WHERE)",
-          model: "parameter",
-          type: "textarea",
-          placeholder: "id IN {ids} AND / OR name = {name}",
-          hint: "* Use comma to split (AND LOGIC), Eg: id IN {variable1} AND name IN {variable2}",
-        },
-      ],
-      databaseDetails: {
-        name: null,
-        host: null,
-        username: null,
-        password: null,
-        database: null,
-        table: null,
+  setup() {
+    const $q = useQuasar();
+    const { t } = useI18n();
+    const formList = ref([
+      {
+        label: "Name",
+        model: "name",
+        type: "text",
       },
+      {
+        label: "Host",
+        model: "host",
+        type: "text",
+      },
+      {
+        label: "Port",
+        model: "port",
+        type: "text",
+        placeholder: "Default: 3306",
+      },
+      {
+        label: "Username",
+        model: "username",
+        type: "text",
+      },
+      {
+        label: "Password",
+        model: "password",
+        type: "text",
+      },
+      {
+        label: "Database",
+        model: "database",
+        type: "select",
+        option: [],
+      },
+      {
+        label: "Table",
+        model: "table",
+        type: "select",
+        option: [],
+      },
+      {
+        label: "Parameter (WHERE)",
+        model: "parameter",
+        type: "textarea",
+        placeholder: "id IN {ids} AND / OR name = {name}",
+        hint: "* Eg: id IN {variable1} AND name IN {variable2}",
+      },
+    ]);
+    const databaseDetails = ref({
+      name: null,
+      host: null,
+      port: null,
+      username: null,
+      password: null,
+      database: null,
+      table: null,
+    });
+
+    const getDatabaseAndTable = async () => {
+      $q.loading.show();
+      if (!databaseDetails.value.database) {
+        // get databases
+        await getDatabases(databaseDetails.value)
+          .then((res) => {
+            if (res.code !== 0) {
+              $q.notify({
+                message: t(`api.${res.code}`),
+                type: "negative",
+              });
+              return;
+            }
+
+            for (const db of res.data.databases) {
+              formList.value[5].option.push({
+                label: db,
+                value: db,
+              });
+            }
+          })
+          .finally(() => {
+            $q.loading.hide();
+          });
+      } else {
+        // get tables
+        const data = {
+          ...databaseDetails.value,
+          database: databaseDetails.value.database.value,
+        };
+        await getTables(data)
+          .then((res) => {
+            if (res.code !== 0) {
+              $q.notify({
+                message: t(`api.${res.code}`),
+                type: "negative",
+              });
+              return;
+            }
+
+            for (const table of res.data.tables) {
+              formList.value[6].option.push({
+                label: table,
+                value: table,
+              });
+            }
+          })
+          .finally(() => {
+            $q.loading.hide();
+          });
+      }
+    };
+    return {
+      formList,
+      databaseDetails,
+      getDatabaseAndTable,
     };
   },
   methods: {
-    add() {
-      this.$q.notify({
-        message: `Added ${this.databaseDetails.name} successfully!`,
-        type: "positive",
-      });
-      this.$router.push("/settings/database");
+    async add() {
+      const data = {
+        ...this.databaseDetails,
+        database: this.databaseDetails.database.value,
+        table: this.databaseDetails.table.value,
+      };
+      this.$q.loading.show();
+      await addDatabase(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Added ${this.databaseDetails.name} successfully!`,
+            type: "positive",
+          });
+          this.$router.push("/settings/database");
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
+    // async getDatabaseAndTable() {
+    //   this.$q.loading.show();
+    //   if (!this.databaseDetails.database) {
+    //     // get databases
+    //     await getDatabases(this.databaseDetails).then((res) => {
+    //       if (res.code !== 0) {
+    //         this.$q.notify({
+    //           message: this.$t(`api.${res.code}`),
+    //           type: "negative",
+    //         });
+    //         return;
+    //       }
+
+    //       for (const db of res.data.databases) {
+    //         this.formList[5].option[db] = {
+    //           label: db,
+    //           value: db.toUpperCase(),
+    //         };
+    //       }
+
+    //       console.log(this.formList[5]);
+
+    //       // this.formList[5].option = {};
+    //     });
+    //   } else {
+    //     // get tables
+    //   }
+    //   this.$q.loading.hide();
+    // },
   },
 });
 </script>
