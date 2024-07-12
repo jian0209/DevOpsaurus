@@ -66,11 +66,18 @@ export default defineComponent({
         option: [],
       },
       {
+        label: "SELECT",
+        model: "select",
+        type: "textarea",
+        placeholder: "username, email, phone",
+        hint: "* Use comma to separate columns, '*' for all columns",
+      },
+      {
         label: "Parameter (WHERE)",
         model: "parameter",
         type: "textarea",
         placeholder: "id IN {ids} AND / OR name = {name}",
-        hint: "* Eg: id IN {variable1} AND name IN {variable2}",
+        hint: "* Eg: id IN {variable1} AND name IN {variable2}, leave it empty if no parameter is needed",
       },
     ]);
     const databaseDetails = ref({
@@ -81,6 +88,8 @@ export default defineComponent({
       password: null,
       database: null,
       table: null,
+      select: null,
+      parameter: null,
     });
 
     const getDatabaseAndTable = async () => {
@@ -90,6 +99,13 @@ export default defineComponent({
         await getDatabases(databaseDetails.value)
           .then((res) => {
             if (res.code !== 0) {
+              if (res.code === 9001) {
+                this.$q.notify({
+                  message: `${res.data.msg || "Unknown Error"}`,
+                  type: "negative",
+                });
+                return;
+              }
               $q.notify({
                 message: t(`api.${res.code}`),
                 type: "negative",
@@ -116,6 +132,13 @@ export default defineComponent({
         await getTables(data)
           .then((res) => {
             if (res.code !== 0) {
+              if (res.code === 9001) {
+                this.$q.notify({
+                  message: `${res.data.msg || "Unknown Error"}`,
+                  type: "negative",
+                });
+                return;
+              }
               $q.notify({
                 message: t(`api.${res.code}`),
                 type: "negative",
@@ -152,6 +175,13 @@ export default defineComponent({
       await addDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
@@ -168,35 +198,6 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
-    // async getDatabaseAndTable() {
-    //   this.$q.loading.show();
-    //   if (!this.databaseDetails.database) {
-    //     // get databases
-    //     await getDatabases(this.databaseDetails).then((res) => {
-    //       if (res.code !== 0) {
-    //         this.$q.notify({
-    //           message: this.$t(`api.${res.code}`),
-    //           type: "negative",
-    //         });
-    //         return;
-    //       }
-
-    //       for (const db of res.data.databases) {
-    //         this.formList[5].option[db] = {
-    //           label: db,
-    //           value: db.toUpperCase(),
-    //         };
-    //       }
-
-    //       console.log(this.formList[5]);
-
-    //       // this.formList[5].option = {};
-    //     });
-    //   } else {
-    //     // get tables
-    //   }
-    //   this.$q.loading.hide();
-    // },
   },
 });
 </script>

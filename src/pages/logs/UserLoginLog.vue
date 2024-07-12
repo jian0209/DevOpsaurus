@@ -4,7 +4,7 @@
       :title="$t('logsPage.userLogin.title')"
       :subtitle="$t('logsPage.userLogin.subtitle')"
     />
-    <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
+    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isInfoDialog
       :title="$t('logsPage.userLogin.infoDialog.title')"
@@ -22,6 +22,7 @@ import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { LOG_STATUS } from "src/utils/constants.js";
 import { generateColumn, generateDialogDetails } from "src/utils/util.js";
+import { getLogList } from "src/api/log.js";
 import moment from "moment";
 
 export default defineComponent({
@@ -34,17 +35,16 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: [
         {
-          id: 1,
-          userId: 1,
-          username: "John Doe",
-          lastLoginTime: 1719553933000,
-          lastLoginIp: "47.241.105.101",
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-          status: 1,
-          reason: "Success",
+          id: null,
+          user_id: null,
+          username: null,
+          last_login_time: null,
+          last_login_ip: null,
+          user_agent: null,
+          status: null,
+          reason: null,
         },
       ],
       infoDialogStatus: ref(false),
@@ -53,7 +53,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, true);
+      this.columns = generateColumn(this.rowData, true);
+      this.getList();
     },
     updateDialogStatus(status) {
       this.infoDialogStatus = status;
@@ -69,6 +70,40 @@ export default defineComponent({
       );
       this.selectedRow["Status"] = LOG_STATUS[row.status];
       this.infoDialogStatus = true;
+    },
+    async getList() {
+      this.$q.loading.show();
+      await getLogList("user")
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.user_log)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.user_log.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.user_log;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
   created() {

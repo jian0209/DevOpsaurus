@@ -56,6 +56,13 @@ export default defineComponent({
       await testSettings("telegram", this.tgDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
@@ -76,6 +83,13 @@ export default defineComponent({
       await saveSettings("telegram", this.tgDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
@@ -96,6 +110,13 @@ export default defineComponent({
       await getSettings("telegram")
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",

@@ -75,22 +75,38 @@ export default defineComponent({
       await login(this.formDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
             });
             return;
           }
+          console.log(res.data);
 
           if (res.data.step === LOGIN_WITH_PASSWORD_ONLY) {
-            this.userStore.login(res.data.token, res.data.username);
+            this.userStore.login(
+              res.data.token,
+              res.data.username,
+              res.data.role
+            );
             this.$q.notify({
               message: this.$t("dialog.welcome", {
                 name: res.data.username,
               }),
               type: "positive",
             });
-            this.$router.push({ path: "/dashboard" });
+            if (res.data.role === 0) {
+              this.$router.push({ path: "/ups-monitor" });
+            } else {
+              this.$router.push({ path: "/dashboard" });
+            }
           } else if (res.data.step === LOGIN_WITH_MFA_WITHOUT_SECRET_KEY) {
             this.userStore.setUsername(res.data.username);
             setTimeout(() => {

@@ -63,6 +63,13 @@ export default defineComponent({
     async getQrCodeImage() {
       await getMfaImg({ username: this.userStore.username }).then((res) => {
         if (res.code !== 0) {
+          if (res.code === 9001) {
+            this.$q.notify({
+              message: `${res.data.msg || "Unknown Error"}`,
+              type: "negative",
+            });
+            return;
+          }
           this.$q.notify({
             message: `${this.$t("notify.getQrCodeFailed")}`,
             type: "negative",
@@ -86,13 +93,24 @@ export default defineComponent({
       await mfaLogin(this.formDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
             });
             return;
           }
-          this.userStore.login(res.data.token, this.userStore.username);
+          this.userStore.login(
+            res.data.token,
+            this.userStore.username,
+            res.data.role
+          );
           this.$router.push("/dashboard");
           this.$q.notify({
             message: this.$t("dialog.welcome", {

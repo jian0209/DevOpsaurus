@@ -8,6 +8,7 @@ export const generateColumn = (
   isSetting = false,
   isOperate = false,
   isRefresh = false,
+  isDialog = false,
 ) => {
   const columns = [];
 
@@ -30,23 +31,25 @@ export const generateColumn = (
       align: "left",
       field: (row) => row[key],
       format: (val) => {
+        if (isDialog) {
+          return val;
+        }
         if (
           key.toLowerCase().includes("time") ||
           key.includes("created_at") ||
           key.includes("updated_at")
         ) {
           return `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`;
-        } else {
-          return typeof val === "string" && val.length > 20
-            ? `${val.substring(0, 20)}...`
-            : isLog && key === "status"
-              ? LOG_STATUS[val] || "Unknown"
-              : isSetting && key.toLowerCase().includes("status")
-                ? STATUS[val] || "Unknown"
-                : key === "role"
-                  ? ROLES[val]
-                  : val;
         }
+        return typeof val === "string" && val.length > 40
+          ? `${val.substring(0, 40)}...`
+          : isLog && key === "status"
+            ? LOG_STATUS[val] || "Unknown"
+            : isSetting && key.toLowerCase().includes("status")
+              ? STATUS[val] || "Unknown"
+              : key === "role"
+                ? ROLES[val]
+                : val;
       },
       sortable: true,
     });
@@ -79,3 +82,23 @@ export const generateSearchForm = (passedData = "") => {
 export const generateDialogDetails = (passedData = {}) => {
   return formatObjectToTitleCase(passedData);
 };
+
+export const replaceCommandString = (str, obj) => {
+  return str.replace(/{([^{}]*)}/g, (a, b) => {
+    let r = obj[b];
+    return typeof r === "string" || typeof r === "number" ? r : a;
+  });
+};
+
+export const replaceQueryString = (str, obj) => {
+  return str.replace(/{([^{}]*)}/g, (a, b) => {
+    let r = obj[b];
+    return typeof r === "string" || typeof r === "number" ? `'${r}'` : a;
+  });
+};
+
+export const generateModifyForm = () => {
+  return { label: "Value", model: "value", type: "text" };
+};
+
+export const generateColumnFromString = (passedData = "") => {};

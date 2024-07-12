@@ -1,5 +1,5 @@
 <template>
-  <q-list>
+  <q-list v-if="$props.show">
     <q-item
       v-if="!$props.isExpended"
       clickable
@@ -87,6 +87,10 @@ export default defineComponent({
     },
     childLink: {
       type: Array,
+    },
+    show: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {

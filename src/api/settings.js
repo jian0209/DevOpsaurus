@@ -26,6 +26,26 @@ export function getRedisList() {
   return api.post("/redis/list", {});
 }
 
+export function editRedis(data) {
+  return api.post("/redis/edit", data);
+}
+
+export function editStatusRedis(data) {
+  return api.post("/redis/edit_status", data);
+}
+
+export function deleteRedis(data) {
+  return api.post("/redis/delete", data);
+}
+
+export function addRedis(data) {
+  return api.post("/redis/add", data);
+}
+
+export function testRedis(data) {
+  return api.post("/redis/test", data);
+}
+
 //////////////// end redis ////////////////
 
 export function getUpsList() {

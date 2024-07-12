@@ -9,9 +9,10 @@ from model.redis_init import redis_client
 import const.const as const
 from conf.config import Config as c
 from utils.helper import encrypt_password, generate_random_string, format_json_from_redis, verify_otp, generate_qr_code
-from utils.credential import check_admin_account, check_user_account
+from utils.credential import check_admin_account
 from model.db_init import db
 from utils.logs import save_user_login_log, save_system_log
+from utils.message import send_all_message
 from utils.init import init_admin_account
 
 
@@ -27,7 +28,7 @@ def init_admin():
     except Exception as e:
         l.error(f"Init admin failed: {str(e)}")
         print(f"Init admin failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/reset_admin', methods=['POST'])
@@ -45,7 +46,7 @@ def reset_admin():
     except Exception as e:
         l.error(f"Reset admin failed: {str(e)}")
         print(f"Reset admin failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/login', methods=['POST'])
@@ -56,7 +57,7 @@ def login():
         encrypted_password = encrypt_password(password)
 
         log_user_info = {
-            "id": None,
+            "user_id": 0,
             "username": username,
             "last_login_time": int(time.time()),
             "last_login_ip": request.remote_addr,
@@ -74,21 +75,22 @@ def login():
 
         if user.password != encrypted_password:
             l.error(f"User {username} password is incorrect, login failed")
-            log_user_info["id"] = user.id
+            log_user_info["user_id"] = user.id
             log_user_info["reason"] = "Password is incorrect"
             save_user_login_log(log_user_info)
             return response.get_response(response.INVALID_LOGIN_CREDENTIAL)
 
         if user.status == const.DISABLED:
             l.error(f"User {username} is disabled, login failed")
-            log_user_info["id"] = user.id
+            log_user_info["user_id"] = user.id
             log_user_info["reason"] = "User is disabled"
             save_user_login_log(log_user_info)
             return response.get_response(response.INVALID_USER_STATUS)
 
         user_info = {
             "username": user.username,
-            "step": const.LOGIN_WITH_PASSWORD_ONLY
+            "step": const.LOGIN_WITH_PASSWORD_ONLY,
+            "role": user.role
         }
 
         if user.mfa_status == const.ENABLED and not user.mfa_secret_key:
@@ -119,12 +121,18 @@ def login():
             }
             if not redis_client.setex(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}", timedelta(days=1), json.dumps(user_redis)):
                 l.error(f"Failed to write token to redis")
-                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+
+            log_user_info["user_id"] = user.id
+            l.info(f"User {username} user id {user.id} login successfully")
+            log_user_info["status"] = 1
+            log_user_info["reason"] = "Login Successfully"
+            save_user_login_log(log_user_info)
 
         return response.get_response(response.SUCCESS, user_info)
     except Exception as e:
         l.error(f"Login failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -147,7 +155,7 @@ def get_mfa_img():
         return response.get_response(response.SUCCESS, {"img": base_img, "secret_key": secret_key})
     except Exception as e:
         l.error(f"get mfa img: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/mfa_login', methods=['POST'])
@@ -156,17 +164,15 @@ def mfa_login():
         username = str(request.json.get("username", ""))
         mfa_token = str(request.json.get("mfa_token", ""))
 
-        token = generate_random_string(20)
-
-        return_data = {
-            "token": token,
-            "step": const.LOGIN_WITH_PASSWORD_ONLY
-        }
-
         user = User.query.filter_by(username=username).first()
         if not user:
             l.error(f"User {username} not found")
             return response.get_response(response.USER_NOT_FOUND)
+
+        return_data = {
+            "step": const.LOGIN_WITH_PASSWORD_ONLY,
+            "role": user.role
+        }
 
         # get redis key for mfa time limit
         mfa_time = redis_client.get(
@@ -178,7 +184,7 @@ def mfa_login():
             l.error(f"{username} MFA login failed, too many attempts")
             if not redis_client.set(f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}", int(mfa_time) + 1, ex=1800):
                 l.error(f"Failed to write mfa time to redis")
-                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
             save_user_login_log({
                 "id": user.id,
                 "username": username,
@@ -195,12 +201,15 @@ def mfa_login():
             l.error(f"User {username} has not set mfa secret key")
             return_data = {
                 "username": user.username,
-                "step": const.LOGIN_WITH_MFA_WITHOUT_SECRET_KEY
+                "step": const.LOGIN_WITH_MFA_WITHOUT_SECRET_KEY,
+                "role": user.role
             }
             return response.get_response(response.MFA_NOT_SET, return_data)
 
         # verify mfa token
         if verify_otp(user.mfa_secret_key, mfa_token):
+            token = generate_random_string(20)
+            return_data["token"] = token
             # generate token and write to redis
             user_redis = {
                 "id": int(user.id),
@@ -214,13 +223,14 @@ def mfa_login():
             }
             if not redis_client.setex(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}", timedelta(days=1), json.dumps(user_redis)):
                 l.error(f"Failed to write token to redis")
-                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
             redis_client.delete(
                 f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}")
             if user.is_password_force_reset == const.ENABLED:
                 return_data = {
                     "token": token,
-                    "step": const.LOGIN_WITH_FORCE_RESET_PASSWORD
+                    "step": const.LOGIN_WITH_FORCE_RESET_PASSWORD,
+                    "role": user.role
                 }
             save_user_login_log({
                 "id": user.id,
@@ -235,7 +245,7 @@ def mfa_login():
             l.error(f"{username}: MFA token is incorrect")
             if not redis_client.set(f"{const.PROJECT_NAME}:{const.MFA_TIME}:{username}", int(mfa_time) + 1, ex=1800):
                 l.error(f"Failed to write mfa time to redis")
-                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+                return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
             save_user_login_log({
                 "id": user.id,
                 "username": username,
@@ -250,7 +260,7 @@ def mfa_login():
         return response.get_response(response.SUCCESS, return_data)
     except Exception as e:
         l.error(f"MFA login failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/reset_password', methods=['POST'])
@@ -298,7 +308,7 @@ def reset_password():
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Reset password failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/logout', methods=['POST'])
@@ -314,10 +324,10 @@ def logout():
         redis_client.delete(f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}")
 
         log_user_info = {
-            "id": user_info.get("id"),
+            "user_id": user_info.get("id"),
             "username": user_info.get("username"),
             "last_login_time": int(time.time()),
-            "last_login_ip": None,
+            "last_login_ip": "-",
             "user_agent": request.headers.get("User-Agent"),
             "status": 1,
             "reason": "User Logged Out"
@@ -326,7 +336,7 @@ def logout():
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Logout failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -344,7 +354,7 @@ def get_user_info():
         return response.get_response(response.SUCCESS, format_json_from_redis(user_info))
     except Exception as e:
         l.error(f"Get user info failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -397,11 +407,27 @@ def add():
             "created_at": time_now
         }
         save_system_log(system_log_info)
+        welcome_email_message = f"""
+Dear {username},
+
+Welcome to devopsaurus! We're thrilled to have you on board and look forward to seeing you thrive with us. Your account has been successfully created with the following details:
+
+Username: {username}
+Email: {email}
+Group: {group}
+Role: {role}
+Url: {c.FRONTEND_URL}
+
+Please take a moment to login and update your password.
+
+Best regards
+"""
+        send_all_message(welcome_email_message, email_to=email)
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Add user failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -456,7 +482,7 @@ def edit_user():
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit user failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/delete', methods=['POST'])
@@ -488,11 +514,12 @@ def delete_user():
             "description": f"Admin: {admin_info['username']} deleted User {username}",
             "created_at": int(time.time())
         })
+        send_all_message(f"{admin_info['username']} deleted User {username}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Delete user failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -533,7 +560,7 @@ def edit_status_user():
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit user status failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -566,6 +593,6 @@ def get_list():
         return response.get_response(response.SUCCESS, {"users": user_list})
     except Exception as e:
         l.error(f"Get user list failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass

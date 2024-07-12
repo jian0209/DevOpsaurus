@@ -68,14 +68,14 @@ def send_all_message(message: str, email_to: str = None):
     is_send_telegram = system_integration.is_telegram_allow
     is_send_slack = system_integration.is_slack_allow
 
-    if is_send_email:
+    if is_send_email and email_to is not None:
         send_email(server=system_integration.email_smtp_server,
                    port=system_integration.email_smtp_port, username=system_integration.email_smtp_username, password=system_integration.email_smtp_password, email_from=system_integration.email_from, email_helo=system_integration.email_helo, email_to=email_to, subject="DevOpsaurus Notification", body=message, ssl_tls=system_integration.email_allow_ssl_tls, start_tls=system_integration.email_allow_start_tls)
 
-    if is_send_telegram:
+    if is_send_telegram and email_to is None:
         send_telegram(bot_token=system_integration.telegram_bot_token, chat_id=system_integration.telegram_chat_id,
                       parse=system_integration.telegram_parse, message=message)
 
-    if is_send_slack:
+    if is_send_slack and email_to is None:
         send_slack(bot_token=system_integration.slack_bot_token, channel=system_integration.slack_channel,
                    token=system_integration.slack_token, message=message)

@@ -17,11 +17,16 @@ def check_admin_account(token: str) -> tuple[bool, dict]:
     return True, admin_info
 
 
-def check_user_account(token: str) -> tuple[bool, dict]:
+def check_user_account(token: str, role: int) -> tuple[bool, dict]:
     user_info = format_json_from_redis(redis_client.get(
         f"{const.PROJECT_NAME}:{const.USER_TOKEN}:{token}"))
     if not user_info:
         l.error(f"Token {token} not found")
+        return False
+
+    if user_info.get("role") < role:
+        l.error(
+            f"User {user_info.get('username')} is not {const.ROLES.get(role)}")
         return False
 
     return True, user_info

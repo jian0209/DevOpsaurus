@@ -26,7 +26,7 @@ CREATE TABLE `devopsaurus`.`d_user_info` (
 
 CREATE TABLE `devopsaurus`.`d_login_log` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint NOT NULL COMMENT 'user id',
+  `user_id` bigint COMMENT 'user id' DEFAULT 0,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
   `last_login_time` int NOT NULL DEFAULT 0 COMMENT 'last login unix timestamp',
   `last_login_ip` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT 'last login ip',
@@ -86,6 +86,7 @@ CREATE TABLE `devopsaurus`.`d_database` (
   `port` int DEFAULT 3306 NOT NULL COMMENT 'port for database',
   `database` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'database name',
   `table` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'table name',
+  `select` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'select query',
   `parameter` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'parameter name',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',

@@ -135,7 +135,7 @@ export default defineComponent({
         {
           label: "Command",
           model: "command",
-          type: "text",
+          type: "textarea",
           hint: "* Variable Eg: curl http://localhost:8080/{variable} {variable2}",
         },
       ],
@@ -199,6 +199,13 @@ export default defineComponent({
       await editCommand(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -224,6 +231,13 @@ export default defineComponent({
       await editStatusCommand(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -250,6 +264,13 @@ export default defineComponent({
       await deleteCommand(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -271,6 +292,13 @@ export default defineComponent({
       await getCommandList()
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -299,6 +327,13 @@ export default defineComponent({
       await testCommand(this.formListDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",

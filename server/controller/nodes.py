@@ -5,6 +5,7 @@ from log import logger as l
 from model.nodes_model import Nodes
 import const.const as const
 from utils.credential import check_admin_account
+from utils.message import send_all_message
 from model.db_init import db
 from utils.logs import save_system_log
 from utils.helper import connect_to_database
@@ -57,11 +58,12 @@ def add():
             "created_at": time_now
         }
         save_system_log(system_log_info)
+        send_all_message(f"{admin_info['username']} added Nodes {name}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Add Nodes failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -102,11 +104,12 @@ def edit_node():
             "description": f"Admin: {admin_info['username']} edited Database {name}",
             "created_at": int(time.time())
         })
+        send_all_message(f"{admin_info['username']} edited Node {name}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit Node failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
 
 
 @nodes_api.route(f'/{const.VERSION_API}/{const.NODES_API}/delete', methods=['POST'])
@@ -138,11 +141,12 @@ def delete_node():
             "description": f"Admin: {admin_info['username']} deleted Node {name}",
             "created_at": int(time.time())
         })
+        send_all_message(f"{admin_info['username']} deleted Node {name}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Delete nodes failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -183,7 +187,7 @@ def edit_status_database():
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit node status failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -215,6 +219,6 @@ def get_list():
         return response.get_response(response.SUCCESS, {"nodes": nodes_list})
     except Exception as e:
         l.error(f"Get nodes list failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass

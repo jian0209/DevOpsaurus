@@ -1,41 +1,55 @@
 import { defineStore } from "pinia";
 import {
-  setToken,
-  getToken,
-  removeToken,
-  getLanguage,
-  getUsername,
-  setUsername,
-  removeUsername,
+  setLocalToken,
+  getLocalToken,
+  removeLocalToken,
+  setSessionUsername,
+  getSessionUsername,
+  removeSessionUsername,
+  setLocalRole,
+  getLocalRole,
+  removeLocalRole,
+  setLocalLanguage,
+  getLocalLanguage,
 } from "src/utils/auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    token: getToken(),
-    username: getUsername(),
+    token: getLocalToken(),
+    username: getSessionUsername(),
+    role: getLocalRole(),
     userInfo: null,
-    language: getLanguage() || "en-US",
+    language: getLocalLanguage() || "en-US",
   }),
 
   getters: {},
 
   actions: {
-    login(token, username) {
-      this.token = token;
-      this.username = username;
-      setToken(token);
-      setUsername(username);
+    login(token, username, role) {
+      this.setToken(token);
+      this.setUsername(username);
+      this.setRole(role);
     },
     logout() {
       this.token = null;
       this.userInfo = null;
       this.username = null;
-      removeToken();
-      removeUsername();
+      this.role = null;
+      removeLocalToken();
+      removeSessionUsername();
+      removeLocalRole();
+    },
+    setToken(token) {
+      this.token = token;
+      setLocalToken(token);
     },
     setUsername(username) {
       this.username = username;
-      setUsername(username);
+      setSessionUsername(username);
+    },
+    setRole(role) {
+      this.role = role;
+      setLocalRole(role);
     },
     setUserInfo(userInfo) {
       this.userInfo = userInfo;

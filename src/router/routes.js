@@ -41,9 +41,14 @@ const routes = [
     component: () => import("layouts/UserLayout.vue"),
     children: [
       {
-        path: "",
-        name: "redis",
-        component: () => import("pages/RedisPage.vue"),
+        path: "get",
+        name: "redis-get",
+        component: () => import("pages/redis/GetRedisPage.vue"),
+      },
+      {
+        path: "set",
+        name: "redis-set",
+        component: () => import("pages/redis/SetRedisPage.vue"),
       },
     ],
   },
@@ -186,6 +191,17 @@ const routes = [
         path: "command/add",
         name: "settings-command-add",
         component: () => import("pages/settings/components/CommandAddPage.vue"),
+      },
+      {
+        path: "docker-service",
+        name: "settings-docker-service",
+        component: () => import("pages/settings/SettingDockerServicePage.vue"),
+      },
+      {
+        path: "docker-service/add",
+        name: "settings-docker-service-add",
+        component: () =>
+          import("pages/settings/components/DockerServiceAddPage.vue"),
       },
       {
         path: "integration",

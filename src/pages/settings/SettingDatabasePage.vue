@@ -151,6 +151,13 @@ export default defineComponent({
         option: [],
       },
       {
+        label: "SELECT",
+        model: "select",
+        type: "textarea",
+        placeholder: "username, email, phone",
+        hint: "* Use comma to separate columns, '*' for all columns",
+      },
+      {
         label: "Parameter (WHERE)",
         model: "parameter",
         type: "textarea",
@@ -166,16 +173,26 @@ export default defineComponent({
       password: null,
       database: null,
       table: null,
+      select: null,
+      parameter: null,
     });
 
     const getTablesForOption = async (row) => {
       $q.loading.show();
       const data = { ...row };
-      data.database = row.database.value;
+      data.database = row.database.value || data.database;
+      console.log(data);
       await getTables(data)
         .then((res) => {
           formList.value[6].option = [];
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             $q.notify({
               message: t(`api.${res.code}`),
               type: "negative",
@@ -197,10 +214,18 @@ export default defineComponent({
 
     const getDatabasesForOption = async (data) => {
       // get databases
+      $q.loading.show();
       await getDatabases(data)
         .then((res) => {
           formList.value[5].option = [];
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             $q.notify({
               message: t(`api.${res.code}`),
               type: "negative",
@@ -238,6 +263,7 @@ export default defineComponent({
           username: null,
           database: null,
           table: null,
+          select: null,
           parameter: null,
           status: null,
           created_at: null,
@@ -271,6 +297,7 @@ export default defineComponent({
     editRow(row) {
       this.formListDetails = { ...row };
       this.getDatabasesForOption(this.formListDetails);
+      this.getTablesForOption(this.formListDetails);
       this.editDialogStatus = true;
     },
     disableRow(row) {
@@ -293,6 +320,7 @@ export default defineComponent({
         Username: row.username,
         Database: row.database,
         Table: row.table,
+        Select: row.select,
         Parameter: row.parameter,
         Status: STATUS[row.status],
         "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
@@ -301,11 +329,19 @@ export default defineComponent({
     },
     async submitEdit(data) {
       this.$q.loading.show();
-      data.database = data.database.value;
-      data.table = data.table.value;
+      // console.log(data);
+      data.database = data.database.value || data.database;
+      data.table = data.table.value || data.table;
       await editDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -331,6 +367,13 @@ export default defineComponent({
       await editStatusDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -357,6 +400,13 @@ export default defineComponent({
       await deleteDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -378,6 +428,13 @@ export default defineComponent({
       await getDatabaseList()
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",

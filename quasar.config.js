@@ -50,7 +50,9 @@ export default configure((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        VUE_APP_FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost",
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -137,7 +139,7 @@ export default configure((ctx) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-ssr/configuring-ssr
     ssr: {
-      prodPort: 3000, // The default port that the production server should use
+      prodPort: 9000, // The default port that the production server should use
       // (gets superseded if process.env.PORT is specified at runtime)
 
       middlewares: [

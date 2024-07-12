@@ -10,6 +10,7 @@ NODES_API = "nodes"
 DATABASE_API = "database"
 COMMAND_API = "command"
 SETTING_API = "settings"
+LOG_API = "log"
 
 # redis key
 USER_TOKEN = "user_token"
@@ -20,6 +21,13 @@ VISITOR = 0
 READER = 1
 EDITOR = 2
 ADMIN = 3
+
+ROLES = {
+    VISITOR: "visitor",
+    READER: "reader",
+    EDITOR: "editor",
+    ADMIN: "admin"
+}
 
 # status
 ENABLED = 1

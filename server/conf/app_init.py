@@ -9,6 +9,8 @@ from controller.settings import setting_api
 from controller.command import command_api
 from controller.database import database_api
 from controller.nodes import nodes_api
+from controller.redis import redis_api
+from controller.log import log_api
 from log import logger as l
 from model.db_init import db
 from model.redis_init import redis_client
@@ -25,6 +27,8 @@ app.register_blueprint(setting_api)
 app.register_blueprint(command_api)
 app.register_blueprint(database_api)
 app.register_blueprint(nodes_api)
+app.register_blueprint(redis_api)
+app.register_blueprint(log_api)
 
 CORS(app, methods=["POST"], supports_credentials=True, max_age=600)
 

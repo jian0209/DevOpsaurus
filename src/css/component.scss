@@ -74,11 +74,8 @@
   justify-content: center;
 }
 
-.execute-dialog-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 20%;
+.execute-dialog {
+  width: 100%;
   margin: 0 20px;
   margin-bottom: 20px;
 }
@@ -87,4 +84,36 @@
   width: 100%;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.form-input-execute-name {
+  padding-left: 10px;
+  margin-bottom: 5px;
+}
+
+
+.result-dialog-subtitle {
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $dark-page;
+  color: $light;
+  border-radius: 10px;
+  margin: 15px 0;
+  margin-top: 10px;
+}
+
+.result-dialog-cont {
+  background-color: $dark-page;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.table-dialog-subtitle {
+  text-align: center;
+  margin: 20px 0;
+  margin-top: 0;
+  padding: 0 !important;
+  font-size: 16px;
 }

@@ -184,6 +184,9 @@ export default {
     1023: "Database connection failed",
     1024: "Nodes existed",
     1025: "Nodes not found",
+    1026: "Redis existed",
+    1027: "Redis not found",
+    1028: "Redis connection failed",
 
     9001: "System internal exception",
     9002: "Page not found",

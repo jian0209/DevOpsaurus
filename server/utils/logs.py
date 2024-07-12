@@ -4,7 +4,7 @@ from model.system_log_model import SystemLog
 
 
 def save_user_login_log(user_info: dict):
-    user_id = user_info.get("id")
+    user_id = user_info.get("user_id")
     username = user_info.get("username")
     last_login_time = user_info.get("last_login_time")
     last_login_ip = user_info.get("last_login_ip")

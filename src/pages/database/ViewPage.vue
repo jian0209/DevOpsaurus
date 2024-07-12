@@ -4,15 +4,11 @@
       :title="$t('databasePage.view.title')"
       :subtitle="$t('databasePage.view.subtitle')"
     />
-    <TableContainer
-      :rows="dummyData"
-      :columns="columns"
-      @click:row="infoRow"
-      @refresh:row="refresh"
-    />
+    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
     <DialogComponent
       isTableDialog
       :title="$t('databasePage.view.dialog.title')"
+      :subtitle="`SELECT ${selectedRow.select} FROM ${selectedRow.table}`"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
@@ -30,8 +26,12 @@ import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
-import { generateColumn, generateSearchForm } from "src/utils/util.js";
-import moment from "moment";
+import {
+  generateColumn,
+  generateSearchForm,
+  replaceQueryString,
+} from "src/utils/util.js";
+import { getDatabaseList, executeQueryToGetData } from "src/api/database";
 
 export default defineComponent({
   name: "DatabaseViewPage",
@@ -43,13 +43,14 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: [
         {
-          id: 1,
-          name: "Production",
-          database: "coinsdo_deposit",
-          table: "t_deposit_record",
-          parameter: "id IN {ids} AND name = {name}",
+          id: null,
+          name: null,
+          database: null,
+          table: null,
+          select: null,
+          parameter: null,
         },
       ],
       searchFormList: ref({}),
@@ -62,41 +63,147 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData);
+      this.columns = generateColumn(this.rowData);
+      this.getList();
     },
     updateDialogStatus(status) {
       this.infoDialogStatus = status;
+      this.dialogColumns = [];
+      this.dialogRows = [];
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedRow[key] = row[key];
-      }
-      this.selectedRow.timeFetch = moment(row.timeFetch).format(
-        "YYYY-MM-DD HH:mm:ss"
-      );
+      this.selectedRow = { ...row };
       this.searchInput = generateSearchForm(this.selectedRow.parameter);
       this.searchInput.forEach((input) => {
         this.searchFormList[input.model] = null;
       });
-      this.dialogColumns = generateColumn(this.dummyData);
-      this.dialogRows = this.dummyData;
       this.infoDialogStatus = true;
     },
-    refresh(row) {
-      console.log(row);
+    async searchData(data) {
+      this.$q.loading.show();
+      let select = "";
+      let parameter = "";
+      let query = "";
+      if (
+        !this.selectedRow.select ||
+        this.selectedRow.select === "" ||
+        this.selectedRow.select === "None"
+      ) {
+        select = "*";
+      } else {
+        select = this.selectedRow.select;
+      }
+
+      if (
+        !this.selectedRow.parameter ||
+        this.selectedRow.parameter === "" ||
+        this.selectedRow.parameter === "None"
+      ) {
+        parameter = "";
+      } else {
+        parameter = `WHERE ${replaceQueryString(
+          this.selectedRow.parameter,
+          data
+        )}`;
+      }
+      query = `SELECT ${select} FROM ${this.selectedRow.database}.${this.selectedRow.table} ${parameter}`;
+
+      const submitData = {
+        database_id: this.selectedRow.id,
+        query: query,
+      };
+
+      await executeQueryToGetData(submitData)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          const columns = [{}];
+          res.data.columns.forEach((column) => {
+            columns[0][column] = null;
+          });
+
+          this.dialogColumns = generateColumn(
+            columns,
+            false,
+            false,
+            false,
+            false,
+            true
+          );
+
+          if (!res.data || !Array.isArray(res.data.result)) {
+            this.dialogRows = [];
+            return;
+          }
+
+          if (res.data.result.length === 0) {
+            this.dialogRows = [];
+          } else {
+            this.dialogRows = res.data.result;
+          }
+
+          this.$q.notify({
+            message: "Data Searched Successfully!",
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+      // this.dialogRows.push({
+      //   id: this.dialogRows.length + 1,
+      //   name: data.name,
+      //   database: data.database,
+      //   table: data.table,
+      //   parameter: data.parameter,
+      // });
     },
-    searchData(data) {
-      this.dialogRows.push({
-        id: this.dialogRows.length + 1,
-        name: data.name,
-        database: data.database,
-        table: data.table,
-        parameter: data.parameter,
-      });
-      this.$q.notify({
-        message: "Data Searched Successfully!",
-        type: "positive",
-      });
+    async getList() {
+      this.$q.loading.show();
+      await getDatabaseList()
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.databases)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.databases.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.databases;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
   created() {

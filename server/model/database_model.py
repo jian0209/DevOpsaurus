@@ -11,6 +11,7 @@ class Database(db.Model):
     port = db.Column(db.Integer, nullable=False, default=3306)
     database = db.Column(db.String(50), nullable=False)
     table = db.Column(db.String(50), nullable=False)
+    select = db.Column(db.Text, nullable=False)
     parameter = db.Column(db.String(200), nullable=False)
     status = db.Column(db.Integer, default=0)
     created_at = db.Column(db.Integer, default=0)

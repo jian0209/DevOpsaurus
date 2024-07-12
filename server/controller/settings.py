@@ -57,7 +57,7 @@ def get_setting(page: str):
             return response.get_response(response.BAD_REQUEST)
     except Exception as e:
         l.error(f"Get Integration failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -137,7 +137,7 @@ def save_integration(page: str):
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Save Integration failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
 
@@ -189,6 +189,6 @@ def test_integration(page):
 
     except Exception as e:
         l.error(f"Test Integration failed: {str(e)}")
-        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION)
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass

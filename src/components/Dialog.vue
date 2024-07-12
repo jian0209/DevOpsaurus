@@ -96,6 +96,9 @@
           </div>
         </div>
         <div v-else-if="$props.isTableDialog" class="form-dialog-card">
+          <q-toolbar-title class="table-dialog-subtitle">
+            <span>{{ $props.subtitle }}</span>
+          </q-toolbar-title>
           <div class="table-dialog-search">
             <div
               class="table-dialog-search-row"
@@ -145,11 +148,11 @@
           </div>
           <div class="execute-dialog-card">
             <div
-              class="execute-dialog-row"
+              class="execute-dialog"
               v-for="(executeItem, executeIndex) in $props.executeInput"
               :key="executeIndex"
             >
-              <div class="form-input-name">{{ executeItem.label }}</div>
+              <div class="form-input-execute-name">{{ executeItem.label }}</div>
               <q-input
                 v-if="
                   executeItem.type === 'text' ||
@@ -168,11 +171,32 @@
           </div>
           <div class="add-btn-cont">
             <UsualButton
-              label="Execute"
+              :label="$props.executeBtnTxt || 'Execute'"
               @action:click="executeData"
               color="info"
             />
             <div style="width: 20px" />
+            <UsualButton
+              label="Close"
+              @action:click="closeDialog"
+              color="info"
+            />
+          </div>
+        </div>
+        <div v-else-if="$props.isResultDialog" class="form-dialog-card">
+          <q-toolbar class="result-dialog-subtitle">
+            {{ $props.subtitle }}
+          </q-toolbar>
+          <div class="result-dialog-cont">
+            <div
+              class="result-dialog-item-cont"
+              v-for="(item, index) of $props.result"
+              :key="index"
+            >
+              <code class="result-dialog-item">{{ item }}</code>
+            </div>
+          </div>
+          <div class="add-btn-cont">
             <UsualButton
               label="Close"
               @action:click="closeDialog"
@@ -223,6 +247,10 @@ export default defineComponent({
     formList: Array,
     formListDetails: Object,
     testBtnTxt: String,
+    executeBtnTxt: {
+      type: String,
+      default: null,
+    },
     title: String,
     subtitle: String,
     isFormDialog: {
@@ -242,6 +270,11 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    isResultDialog: {
+      type: Boolean,
+      default: false,
+    },
+    result: Array,
     dialogRows: Array,
     dialogColumns: Array,
     searchInput: Array,

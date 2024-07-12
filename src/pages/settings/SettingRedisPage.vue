@@ -13,7 +13,7 @@
       />
     </div>
     <TableContainer
-      :rows="dummyData"
+      :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
       @disable:row="disableRow($event)"
@@ -29,24 +29,29 @@
       testBtnTxt="Test Redis Connection"
       isFormDialog
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEdit"
+      @test:connection="testRedisConnection"
     />
     <DialogComponent
       title="Enable Redis"
       :dialogStatus="enableDialogStatus"
       :subtitle="`This Will Enable Redis {${selectedRow}} Be View By User`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(1)"
     />
     <DialogComponent
       title="Disable Redis"
       :dialogStatus="disableDialogStatus"
       :subtitle="`This Will Disable Redis {${selectedRow}} Be View By User`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
       title="Delete Redis"
       :dialogStatus="deleteDialogStatus"
       :subtitle="`This Will Delete Redis Record {${selectedRow}}`"
       @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitDelete"
     />
     <DialogComponent
       isInfoDialog
@@ -67,6 +72,13 @@ import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import { generateColumn } from "src/utils/util.js";
 import moment from "moment";
+import {
+  getRedisList,
+  editRedis,
+  editStatusRedis,
+  deleteRedis,
+  testRedis,
+} from "src/api/settings.js";
 import "src/css/settingsScreen.scss";
 
 export default defineComponent({
@@ -80,19 +92,26 @@ export default defineComponent({
   data() {
     return {
       columns: ref([]),
-      dummyData: [
+      rowData: [
         {
-          id: 1,
-          host: "localhost",
-          port: "6379",
-          database: 0,
-          auth: "password",
-          get: "debug:trx_status",
-          status: 1,
-          createdAt: 1719553933000,
+          id: null,
+          name: null,
+          host: null,
+          port: null,
+          database: null,
+          auth: null,
+          get: null,
+          status: null,
+          created_at: null,
         },
       ],
       formList: [
+        {
+          label: "Name",
+          model: "name",
+          type: "text",
+          readonly: true,
+        },
         {
           label: "Host",
           model: "host",
@@ -131,7 +150,8 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(this.rowData, false, true, true);
+      this.getList();
     },
     goToAddPage() {
       this.$router.push("/settings/redis/add");
@@ -144,57 +164,187 @@ export default defineComponent({
       this.infoDialogStatus = status;
     },
     editRow(row) {
-      for (const key in row) {
-        this.formListDetails[key] = row[key];
-      }
+      this.formListDetails = { ...row };
       this.editDialogStatus = true;
     },
     disableRow(row) {
-      this.selectedRow = `${row.host}:${row.port}`;
+      this.selectedRow = row.name;
       this.disableDialogStatus = true;
     },
     enableRow(row) {
-      this.selectedRow = `${row.host}:${row.port}`;
+      this.selectedRow = row.name;
       this.enableDialogStatus = true;
     },
     deleteRow(row) {
-      this.selectedRow = `${row.host}:${row.port}`;
+      this.selectedRow = row.name;
       this.deleteDialogStatus = true;
     },
     infoRow(row) {
-      for (const key in row) {
-        this.selectedInfoRow[key] = row[key];
-      }
-      this.selectedInfoRow.status = STATUS[this.selectedInfoRow.status];
-      this.selectedInfoRow.createdAt = moment(
-        this.selectedInfoRow.createdAt
-      ).format("YYYY-MM-DD HH:mm:ss");
+      this.selectedInfoRow = {
+        Name: row.name,
+        Host: row.host,
+        Port: row.port,
+        Database: row.database,
+        Auth: row.auth,
+        Get: row.get,
+        Status: STATUS[row.status],
+        "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
+      };
       this.infoDialogStatus = true;
     },
-    submitEdit(data) {
-      console.log(data);
-      this.$q.notify({
-        message: `Edit "${data.username}" successfully!`,
-        type: "positive",
-      });
+    async submitEdit(data) {
+      this.$q.loading.show();
+      await editRedis(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Edit "${data.name}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitEnable() {
-      this.$q.notify({
-        message: `Enable "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async submitEditStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+        status: status || 0,
+      };
+      await editStatusRedis(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitDisable() {
-      this.$q.notify({
-        message: `Disable "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async submitDelete() {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+      };
+      await deleteRedis(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `Delete "${this.selectedRow}" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
     },
-    submitDelete() {
-      this.$q.notify({
-        message: `Delete "${this.selectedRow}" successfully!`,
-        type: "positive",
-      });
+    async getList() {
+      this.$q.loading.show();
+      await getRedisList()
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+
+          if (!res.data || !Array.isArray(res.data.redis)) {
+            this.rowData = [];
+            return;
+          }
+
+          if (res.data.redis.length === 0) {
+            this.rowData = [];
+          } else {
+            this.rowData = res.data.redis;
+          }
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
+    },
+    async testRedisConnection(data) {
+      this.$q.loading.show();
+      await testRedis(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: "Test Redis Connection Successfully!",
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+        });
     },
   },
   created() {

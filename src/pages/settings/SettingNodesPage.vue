@@ -191,6 +191,13 @@ export default defineComponent({
       await editNode(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -216,6 +223,13 @@ export default defineComponent({
       await editStatusNode(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -242,6 +256,13 @@ export default defineComponent({
       await deleteNode(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",
@@ -262,8 +283,14 @@ export default defineComponent({
       this.$q.loading.show();
       await getNodesList()
         .then((res) => {
-          console.log(res);
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code || "unknown"}`),
               type: "negative",

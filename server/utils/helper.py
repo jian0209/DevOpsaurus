@@ -68,9 +68,9 @@ def connect_to_database(host: str, username: str, password: str, port: int = 330
         return None
 
 
-def connect_to_redis(host: str, port: int, password: str):
+def connect_to_redis(host: str, port: int, password: str, db: int = 0):
     try:
-        conn = redis.Redis(host=host, port=port, password=password)
+        conn = redis.Redis(host=host, port=port, password=password, db=db)
         return conn
     except redis.RedisError as e:
         l.error(f"Redis connection error: {str(e)}")

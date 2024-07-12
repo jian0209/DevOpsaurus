@@ -3,7 +3,7 @@ import os
 
 class Config(object):
     HOST = "0.0.0.0"
-    PORT = os.getenv("PORT", 9001)
+    PORT = 9001
     DEBUG = os.getenv("DEBUG", True)
 
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
@@ -19,3 +19,5 @@ class Config(object):
     INITIAL_USERNAME = os.getenv("INITIAL_USERNAME", "admin")
     INITIAL_PASSWORD = os.getenv("INITIAL_PASSWORD", "admin")
     INITIAL_EMAIL = os.getenv("INITIAL_EMAIL", "admin@asd.asd")
+
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

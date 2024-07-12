@@ -48,6 +48,7 @@ import { defineComponent, ref } from "vue";
 import SidebarLink from "components/SidebarLink.vue";
 import { getInfo, logout } from "src/api/auth";
 import { useUserStore } from "src/stores/user";
+import { ADMIN_ROLE, EDITOR_ROLE, READER_ROLE } from "src/utils/constants";
 
 export default defineComponent({
   name: "UserLayout",
@@ -69,37 +70,53 @@ export default defineComponent({
           name: "Redis",
           icon: "storage",
           routeTo: "/redis",
-          activeLink: false,
-        },
-        {
-          title: "UPS",
-          name: "UPS",
-          icon: "battery_5_bar",
-          routeTo: "/ups-monitor",
-          activeLink: false,
-        },
-        {
-          title: "Nodes",
-          name: "Nodes",
-          icon: "timeline",
           isExpended: true,
           childLink: [
             {
-              title: "Monitor",
-              name: "NodesMonitor",
+              title: "Get Redis",
+              name: "RedisGet",
               icon: "monitor_heart",
-              routeTo: "/nodes/monitor",
+              routeTo: "/redis/get",
               activeLink: false,
             },
             {
-              title: "Edit Nginx",
-              name: "NodesNginx",
+              title: "Set Redis",
+              name: "RedisSet",
               icon: "change_circle",
-              routeTo: "/nodes/edit",
+              routeTo: "/redis/set",
               activeLink: false,
             },
           ],
         },
+        // {
+        //   title: "UPS",
+        //   name: "UPS",
+        //   icon: "battery_5_bar",
+        //   routeTo: "/ups-monitor",
+        //   activeLink: false,
+        // },
+        // {
+        //   title: "Nodes",
+        //   name: "Nodes",
+        //   icon: "timeline",
+        //   isExpended: true,
+        //   childLink: [
+        //     {
+        //       title: "Monitor",
+        //       name: "NodesMonitor",
+        //       icon: "monitor_heart",
+        //       routeTo: "/nodes/monitor",
+        //       activeLink: false,
+        //     },
+        //     {
+        //       title: "Edit Nginx",
+        //       name: "NodesNginx",
+        //       icon: "change_circle",
+        //       routeTo: "/nodes/edit",
+        //       activeLink: false,
+        //     },
+        //   ],
+        // },
         {
           title: "Database (MySQL)",
           name: "Database",
@@ -113,20 +130,20 @@ export default defineComponent({
               routeTo: "/database/view",
               activeLink: false,
             },
-            {
-              title: "Edit Data",
-              name: "DatabaseEdit",
-              icon: "edit_note",
-              routeTo: "/database/edit",
-              activeLink: false,
-            },
-            {
-              title: "Database Schedule",
-              name: "DatabaseSchedule",
-              icon: "update",
-              routeTo: "/database/schedule",
-              activeLink: false,
-            },
+            // {
+            //   title: "Edit Data",
+            //   name: "DatabaseEdit",
+            //   icon: "edit_note",
+            //   routeTo: "/database/edit",
+            //   activeLink: false,
+            // },
+            // {
+            //   title: "Database Schedule",
+            //   name: "DatabaseSchedule",
+            //   icon: "update",
+            //   routeTo: "/database/schedule",
+            //   activeLink: false,
+            // },
           ],
         },
         {
@@ -186,13 +203,13 @@ export default defineComponent({
             //   routeTo: "/settings/ups",
             //   activeLink: false,
             // },
-            {
-              title: "Nodes",
-              name: "SettingsNodes",
-              icon: "timeline",
-              routeTo: "/settings/nodes",
-              activeLink: false,
-            },
+            // {
+            //   title: "Nodes",
+            //   name: "SettingsNodes",
+            //   icon: "timeline",
+            //   routeTo: "/settings/nodes",
+            //   activeLink: false,
+            // },
             {
               title: "Database",
               name: "SettingsDatabase",
@@ -205,6 +222,13 @@ export default defineComponent({
               name: "SettingsCommand",
               icon: "keyboard_command_key",
               routeTo: "/settings/command",
+              activeLink: false,
+            },
+            {
+              title: "Docker Services",
+              name: "SettingsDockerService",
+              icon: "keyboard_command_key",
+              routeTo: "/settings/docker-service",
               activeLink: false,
             },
             {
@@ -309,6 +333,41 @@ export default defineComponent({
       this.getInfoInterval = setInterval(() => {
         this.getUserInfo();
       }, 15000);
+      if (parseInt(this.userStore.role) !== ADMIN_ROLE) {
+        this.linksList = this.linksList.filter((link) => {
+          return link.name !== "Settings" && link.name !== "Logs";
+        });
+      }
+      if (
+        parseInt(this.userStore.role) !== ADMIN_ROLE &&
+        parseInt(this.userStore.role) !== EDITOR_ROLE
+      ) {
+        this.linksList[1].childLink = this.linksList[1].childLink.filter(
+          (link) => link.name !== "RedisSet"
+        );
+        // this.linksList[2].childLink = this.linksList[2].childLink.filter(
+        //   (link) => link.name !== "NodesNginx"
+        // );
+        this.linksList[2].childLink = this.linksList[2].childLink.filter(
+          (link) =>
+            link.name !== "DatabaseEdit" && link.name !== "DatabaseSchedule"
+        );
+        this.linksList = this.linksList.filter(
+          (link) => link.name !== "Command"
+        );
+      }
+      if (
+        parseInt(this.userStore.role) !== ADMIN_ROLE &&
+        parseInt(this.userStore.role) !== EDITOR_ROLE &&
+        parseInt(this.userStore.role) !== READER_ROLE
+      ) {
+        this.linksList = this.linksList.filter(
+          (link) =>
+            link.name !== "Redis" &&
+            link.name !== "Database" &&
+            link.name !== "Dashboard"
+        );
+      }
     },
     clearUserCheck() {
       if (this.getInfoInterval) {

@@ -52,7 +52,7 @@ export default defineComponent({
         {
           label: "Command",
           model: "command",
-          type: "text",
+          type: "textarea",
         },
       ],
       commandDetails: {
@@ -72,6 +72,13 @@ export default defineComponent({
       await addCommand(data)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
@@ -91,6 +98,13 @@ export default defineComponent({
       await testCommand(this.commandDetails)
         .then((res) => {
           if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
             this.$q.notify({
               message: this.$t(`api.${res.code}`),
               type: "negative",
