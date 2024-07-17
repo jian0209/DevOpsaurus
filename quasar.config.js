@@ -51,7 +51,7 @@ export default configure((ctx) => {
       // publicPath: '/',
       // analyze: true,
       env: {
-        VUE_APP_FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost",
+        VUE_APP_WEB_URL: process.env.VUE_APP_WEB_URL || "http://localhost",
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

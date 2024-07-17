@@ -11,7 +11,7 @@ import { Notify } from "quasar";
 // for each client)
 console.log(process.env);
 const api = axios.create({
-  baseURL: `${process.env.VUE_APP_FRONTEND_URL || "http://localhost"}/api/v1`,
+  baseURL: `${process.env.VUE_APP_WEB_URL || "http://localhost"}:9001/v1`,
   headers: {
     "Content-Type": "application/json",
   },

@@ -3,12 +3,15 @@ FROM python:3.9-slim
 RUN apt-get update && \
   apt-get install -y nodejs npm && \
   npm install -g serve && \
-  apt-get install -y supervisor
+  apt-get install -y supervisor default-mysql-client
 
 WORKDIR /app
 
 COPY server /app/server
 COPY . /app/client
+COPY start.sh /app/start.sh
+
+RUN chmod +x /app/start.sh
 
 RUN pip install --no-cache-dir -r /app/server/requirement.txt
 
@@ -20,5 +23,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ENV FLASK_APP=/app/server/app.py
 
-# Start supervisord to manage the processes
-CMD ["/usr/bin/supervisord"]
+EXPOSE 9000
+EXPOSE 9001
+
+CMD ["/app/start.sh"]

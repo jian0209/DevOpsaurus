@@ -1,5 +1,14 @@
 <template>
   <div class="table-cont">
+    <div class="export-btn-cont">
+      <q-btn
+        color="secondary"
+        icon-right="archive"
+        label="Export table"
+        no-caps
+        @click="exportTable"
+      />
+    </div>
     <q-table
       :rows="rows"
       :columns="columns"
@@ -90,6 +99,8 @@
 <script>
 import { defineComponent } from "vue";
 import UsualButton from "./Button.vue";
+import { wrapCsvValue } from "src/utils/util";
+import { exportFile } from "quasar";
 
 export default defineComponent({
   name: "TableContainer",
@@ -125,6 +136,35 @@ export default defineComponent({
     },
     rowClick(event, row, index) {
       this.$emit("click:row", row);
+    },
+    exportTable() {
+      const content = [this.columns.map((col) => wrapCsvValue(col.label))]
+        .concat(
+          this.rows.map((row) =>
+            this.columns
+              .map((col) =>
+                wrapCsvValue(
+                  typeof col.field === "function"
+                    ? col.field(row)
+                    : row[col.field === void 0 ? col.name : col.field],
+                  col.format,
+                  row
+                )
+              )
+              .join(",")
+          )
+        )
+        .join("\r\n");
+
+      const status = exportFile("table-export.csv", content, "text/csv");
+
+      if (status !== true) {
+        $q.notify({
+          message: "Browser denied file download...",
+          color: "negative",
+          icon: "warning",
+        });
+      }
     },
   },
 });
