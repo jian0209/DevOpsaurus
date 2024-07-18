@@ -1,7 +1,7 @@
 <template>
   <div>
     <TitleContainer title="Redis Page" :subtitle="'Set Redis Value'" />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
+    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" title="redis-set" />
     <DialogComponent
       isExecuteDialog
       :title="'Redis Information Details'"

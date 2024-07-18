@@ -5,7 +5,8 @@
 
 import { configure } from "quasar/wrappers";
 import { fileURLToPath } from "node:url";
-import { Notify } from "quasar";
+
+const envparser = require("./src/config/envparser.js");
 
 export default configure((ctx) => {
   return {
@@ -50,8 +51,9 @@ export default configure((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
+
       env: {
-        VUE_APP_WEB_URL: process.env.VUE_APP_WEB_URL || "http://localhost",
+        VUE_APP_WEB_URL: process.env.WEB_URL || "http://localhost",
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

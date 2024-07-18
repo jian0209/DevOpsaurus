@@ -4,7 +4,12 @@
       :title="$t('upsPage.title')"
       :subtitle="$t('upsPage.subtitle')"
     />
-    <TableContainer :rows="dummyData" :columns="columns" @click:row="infoRow" />
+    <TableContainer
+      :rows="dummyData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="ups"
+    />
     <DialogComponent
       isInfoDialog
       :title="$t('upsPage.viewDialog.title')"

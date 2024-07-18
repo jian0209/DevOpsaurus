@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      title="setting-database"
     />
     <DialogComponent
       :title="$t('settingsPage.dialog.edit.title', { name: 'Database' })"
@@ -181,7 +182,6 @@ export default defineComponent({
       $q.loading.show();
       const data = { ...row };
       data.database = row.database.value || data.database;
-      console.log(data);
       await getTables(data)
         .then((res) => {
           formList.value[6].option = [];
@@ -329,7 +329,6 @@ export default defineComponent({
     },
     async submitEdit(data) {
       this.$q.loading.show();
-      // console.log(data);
       data.database = data.database.value || data.database;
       data.table = data.table.value || data.table;
       await editDatabase(data)

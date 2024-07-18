@@ -4,7 +4,7 @@
       :title="$t('databasePage.view.title')"
       :subtitle="$t('databasePage.view.subtitle')"
     />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
+    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" title="database-view" />
     <DialogComponent
       isTableDialog
       :title="$t('databasePage.view.dialog.title')"

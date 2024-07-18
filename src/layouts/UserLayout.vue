@@ -24,7 +24,7 @@
     >
       <q-list>
         <q-item-label header class="sidebar-logo">
-          <q-img src="src/assets/logo.png" height="100px" width="100px" />
+          <q-img src="~assets/logo.png" height="100px" width="100px" />
           <p class="logo-text">DevOpsaurus</p>
         </q-item-label>
 

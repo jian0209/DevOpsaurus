@@ -6,6 +6,7 @@
         icon-right="archive"
         label="Export table"
         no-caps
+        :class="!$props.noClass ? 'export-btn' : null"
         @click="exportTable"
       />
     </div>
@@ -101,6 +102,7 @@ import { defineComponent } from "vue";
 import UsualButton from "./Button.vue";
 import { wrapCsvValue } from "src/utils/util";
 import { exportFile } from "quasar";
+import moment from "moment";
 
 export default defineComponent({
   name: "TableContainer",
@@ -114,6 +116,7 @@ export default defineComponent({
     rowKey: String,
     noDataLabel: String,
     noClass: Boolean,
+    title: String,
   },
   methods: {
     infoRow(row) {
@@ -156,7 +159,13 @@ export default defineComponent({
         )
         .join("\r\n");
 
-      const status = exportFile("table-export.csv", content, "text/csv");
+      const status = exportFile(
+        `${this.title || "table"}-export-${moment(moment.now()).format(
+          "YYYY-MM-DD_HH-mm-ss"
+        )}.csv`,
+        content,
+        "text/csv"
+      );
 
       if (status !== true) {
         $q.notify({

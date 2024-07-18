@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      title="setting-redis"
     />
     <DialogComponent
       title="Edit Redis"

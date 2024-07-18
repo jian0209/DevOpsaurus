@@ -4,7 +4,12 @@
       :title="$t('logsPage.system.title')"
       :subtitle="$t('logsPage.system.subtitle')"
     />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
+    <TableContainer
+      :rows="rowData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="system-log"
+    />
     <DialogComponent
       isInfoDialog
       :title="$t('logsPage.system.infoDialog.title')"

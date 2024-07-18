@@ -6,7 +6,7 @@ FLUSH PRIVILEGES;
 
 USE `devopsaurus`;
 
-CREATE TABLE `devopsaurus`.`d_user_info` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_user_info` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'unique username',
   `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'password for username',
@@ -24,7 +24,7 @@ CREATE TABLE `devopsaurus`.`d_user_info` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_login_log` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_login_log` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint COMMENT 'user id' DEFAULT 0,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
@@ -38,7 +38,7 @@ CREATE TABLE `devopsaurus`.`d_login_log` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_system_log` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_system_log` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
   `role` int DEFAULT 0 NOT NULL COMMENT 'user role, 0: visitor, 1: reader, 2: writer, 3: admin',
@@ -50,7 +50,7 @@ CREATE TABLE `devopsaurus`.`d_system_log` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_redis` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_redis` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -64,7 +64,7 @@ CREATE TABLE `devopsaurus`.`d_redis` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_nodes` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_nodes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `group_name` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'group name to which the node belongs',
@@ -77,7 +77,7 @@ CREATE TABLE `devopsaurus`.`d_nodes` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_database` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_database` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -94,7 +94,7 @@ CREATE TABLE `devopsaurus`.`d_database` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_command` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_command` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'command name (unique)',
   `host` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -108,7 +108,7 @@ CREATE TABLE `devopsaurus`.`d_command` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `devopsaurus`.`d_system_integration` (
+CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_system_integration` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `is_email_allow` int NOT NULL COMMENT 'send email, 0: disable, 1: enable',
   `is_telegram_allow` int NOT NULL COMMENT 'send telegram message, 0: disable, 1: enable',
@@ -129,5 +129,3 @@ CREATE TABLE `devopsaurus`.`d_system_integration` (
   `slack_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'slack token',
   PRIMARY KEY (`id`) -- 将 id 字段设置为主键
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-INSERT INTO `devopsaurus`.`d_system_integration` VALUES (1, 0, 0, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null);

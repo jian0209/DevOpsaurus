@@ -17,6 +17,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      title="setting-user"
     />
     <DialogComponent
       title="Edit User"

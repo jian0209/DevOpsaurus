@@ -13,6 +13,40 @@ from utils.message import send_email, send_slack, send_telegram
 setting_api = Blueprint('setting_api', __name__)
 
 
+@setting_api.route(f'/{const.VERSION_API}/{const.SETTING_API}/init', methods=['POST'])
+def init_setting():
+    try:
+        system_integration = SystemIntegration.query.first()
+        if system_integration is None:
+            system_integration = SystemIntegration(
+                id=1,
+                is_email_allow=0,
+                is_telegram_allow=0,
+                is_slack_allow=0,
+                email_smtp_server=None,
+                email_smtp_port=None,
+                email_smtp_username=None,
+                email_smtp_password=None,
+                email_from=None,
+                email_helo=None,
+                email_allow_ssl_tls=None,
+                email_allow_start_tls=None,
+                telegram_bot_token=None,
+                telegram_chat_id=None,
+                telegram_parse=None,
+                slack_bot_token=None,
+                slack_channel=None,
+                slack_token=None
+            )
+            db.session.add(system_integration)
+            db.session.commit()
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Init Integration failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+
+
 @setting_api.route(f'/{const.VERSION_API}/{const.SETTING_API}/get/<page>', methods=['POST'])
 def get_setting(page: str):
     try:

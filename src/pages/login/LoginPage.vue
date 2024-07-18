@@ -1,7 +1,7 @@
 <template>
   <div class="login-main-cont">
     <div class="login-header">
-      <q-img src="src/assets/logo.png" height="200px" width="200px" />
+      <q-img src="~assets/logo.png" height="200px" width="200px" />
       <p class="logo-text">DevOpsaurus</p>
     </div>
     <div class="login-form" v-for="(item, index) in formList" :key="index">
@@ -88,7 +88,6 @@ export default defineComponent({
             });
             return;
           }
-          console.log(res.data);
 
           if (res.data.step === LOGIN_WITH_PASSWORD_ONLY) {
             this.userStore.login(

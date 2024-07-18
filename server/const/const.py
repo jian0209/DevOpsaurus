@@ -1,7 +1,7 @@
 # base
 PROJECT_NAME = "DevOpsaurus"
-VERSION = "1.0.0.0"
-VERSION_API = "v1"
+VERSION = "1.0.0"
+VERSION_API = "api/v1"
 
 # api key
 USER_API = "user"

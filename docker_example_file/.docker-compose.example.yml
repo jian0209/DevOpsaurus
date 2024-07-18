@@ -8,7 +8,7 @@ services:
       REDIS_AUTH: 'V1dwT1UyRnJNVFpYVkVaT1ZrVnNObFJyVWxaTlp6MDk='
       REDIS_HOST: 'redis'
       REDIS_PORT: '6379'
-      DATABASE_USERNAME: 'devops'
+      DATABASE_USERNAME: 'root'
       DATABASE_PASSWORD: '123456'
       DATABASE_URL: 'mysql'
       DATABASE_PORT: '3306'
@@ -18,7 +18,13 @@ services:
       INITIAL_USERNAME: 'admin'
       INITIAL_PASSWORD: 'admin'
       INITIAL_EMAIL: 'admin@asd.com'
-      WEB_URL: 'http://devops.local.com'
+      WEB_URL: 'http://local.asd'
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:9001/v1/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 5s
     depends_on:
       - mysql
       - redis
@@ -37,7 +43,6 @@ services:
     image: mysql:8.0.38
     container_name: devopsaurus_mysql
     environment:
-      MYSQL_USER: 'devops'
       MYSQL_ROOT_PASSWORD: '123456'
       MYSQL_DATABASE: 'devopsaurus'
 

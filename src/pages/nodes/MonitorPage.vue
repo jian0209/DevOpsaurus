@@ -9,6 +9,7 @@
       :columns="columns"
       @info:row="infoRow"
       @refresh:row="refresh"
+      title="nodes-monitor"
     />
     <DialogComponent
       isInfoDialog
@@ -69,7 +70,6 @@ export default defineComponent({
       this.infoDialogStatus = true;
     },
     refresh(row) {
-      console.log(row);
       this.$q.notify({
         message: `Refresh ${row.name} successfully!`,
         type: "positive",

@@ -131,6 +131,7 @@
             <TableContainer
               :rows="$props.dialogRows"
               :columns="$props.dialogColumns"
+              :title="$props.title"
               noClass
             />
           </q-card-section>

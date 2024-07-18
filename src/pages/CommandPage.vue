@@ -4,7 +4,12 @@
       :title="$t('commandPage.title')"
       :subtitle="$t('commandPage.subtitle')"
     />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
+    <TableContainer
+      :rows="rowData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="command"
+    />
     <DialogComponent
       isExecuteDialog
       :title="$t('commandPage.executeDialog.title')"

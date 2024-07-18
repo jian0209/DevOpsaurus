@@ -22,7 +22,6 @@ export default boot(({ router }) => {
     const dashboardRoute = "/dashboard";
 
     const token = userStore.token;
-    console.log("to: ", to.path);
 
     if (token) {
       if (

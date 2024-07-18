@@ -1,7 +1,12 @@
 <template>
   <div>
     <TitleContainer title="Redis Page" :subtitle="'Get Redis Result'" />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" />
+    <TableContainer
+      :rows="rowData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="get-redis"
+    />
     <DialogComponent
       isInfoDialog
       :title="'Redis Information Details'"

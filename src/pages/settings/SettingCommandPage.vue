@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      title="setting-command"
     />
     <DialogComponent
       title="Edit Command"
@@ -323,7 +324,6 @@ export default defineComponent({
     },
     async testConnect() {
       this.$q.loading.show();
-      console.log(this.formListDetails);
       await testCommand(this.formListDetails)
         .then((res) => {
           if (res.code !== 0) {
