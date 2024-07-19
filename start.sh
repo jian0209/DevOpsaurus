@@ -1,5 +1,11 @@
 #! /bin/bash
-set -x
+
+# Set the environment variables
+if [ -z "$WEB_URL" ]; then
+  echo "WEB_URL is not set. Exiting..."
+fi
+
+echo "{\"WEB_URL\": \"$WEB_URL\"}" > /app/client/env.json
 
 # Start the application
 echo "Starting the application..."

@@ -127,7 +127,6 @@ export default defineComponent({
       };
 
       submitData.get_key = replaceCommandString(submitData.get, data);
-      console.log(submitData);
 
       this.$q.loading.show();
       await getRedisResult(submitData)

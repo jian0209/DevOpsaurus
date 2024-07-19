@@ -93,7 +93,6 @@ export const replaceCommandString = (str, obj) => {
 export const replaceQueryString = (str, obj) => {
   return str.replace(/{([^{}]*)}/g, (a, b) => {
     let r = obj[b];
-    console.log(r);
     if (r.includes(",")) {
       return r
         .split(",")

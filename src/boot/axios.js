@@ -3,78 +3,97 @@ import axios from "axios";
 import { useUserStore } from "src/stores/user";
 import { Notify } from "quasar";
 
+let env = {};
+async function initEnv() {
+  await fetch("/env.json")
+    .then((response) => response.json())
+    .then((data) => {
+      env = data;
+    })
+    .catch(() => {
+      env = {};
+    });
+}
+
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
 // If any client changes this (global) instance, it might be a
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
+async function setup() {
+  await initEnv();
+  const api = axios.create({
+    baseURL: `${env.WEB_URL || "http://localhost:9001"}/api/v1`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    timeout: 10000,
+  });
 
-const api = axios.create({
-  baseURL: `${process.env.VUE_APP_WEB_URL || "http://localhost"}/api/v1`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000,
-});
+  console.log(env);
 
-api.interceptors.request.use(
-  (config) => {
-    // do something before request is sent
-    const store = useUserStore();
-    if (store.token) {
-      // let each request carry token
-      config.headers["D-token"] = store.token;
-    }
-    return config;
-  },
-  (error) => {
-    // do something with request error
-    return Promise.reject(error);
-  },
-);
+  api.interceptors.request.use(
+    (config) => {
+      // do something before request is sent
+      const store = useUserStore();
+      if (store.token) {
+        // let each request carry token
+        config.headers["D-token"] = store.token;
+      }
+      return config;
+    },
+    (error) => {
+      // do something with request error
+      return Promise.reject(error);
+    },
+  );
 
-// response interceptor
-api.interceptors.response.use(
-  (response) => {
-    const res = response.data;
-    if (response.status === 200) {
-      return {
-        data: res.data,
-        code: res.code,
-        msg: res.msg || "success",
-      };
-    }
-    return Promise.reject({
-      data: res,
-      code: response.status,
-      msg: response.statusText || "error",
-      success: false,
-    });
-  },
-  (error) => {
-    if (!error.response) {
-      Notify.create({
-        color: "negative",
-        position: "top",
-        message: "Network Error",
-      });
+  // response interceptor
+  api.interceptors.response.use(
+    (response) => {
+      const res = response.data;
+      if (response.status === 200) {
+        return {
+          data: res.data,
+          code: res.code,
+          msg: res.msg || "success",
+        };
+      }
       return Promise.reject({
-        data: error,
-        code: 9999,
-        msg: "Network Error",
+        data: res,
+        code: response.status,
+        msg: response.statusText || "error",
         success: false,
       });
-    }
+    },
+    (error) => {
+      if (!error.response) {
+        Notify.create({
+          color: "negative",
+          position: "top",
+          message: "Network Error",
+        });
+        return Promise.reject({
+          data: error,
+          code: 9999,
+          msg: "Network Error",
+          success: false,
+        });
+      }
 
-    return Promise.reject({
-      data: error.response,
-      code: code,
-      msg: msg || error.message,
-      success: false,
-    });
-  },
-);
+      return Promise.reject({
+        data: error.response,
+        code: code,
+        msg: msg || error.message,
+        success: false,
+      });
+    },
+  );
+
+  return api;
+}
+const api = setup();
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
