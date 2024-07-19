@@ -9,6 +9,8 @@ from utils.message import send_all_message
 from model.db_init import db
 from utils.logs import save_system_log
 from utils.helper import connect_to_database
+from decimal import Decimal
+from datetime import datetime
 
 
 database_api = Blueprint('database_api', __name__)
@@ -367,6 +369,7 @@ def execute_query_to_get_data():
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
 
+        l.info(f"Query: {query}")
         with conn.cursor() as cursor:
             cursor.execute(query)
             data = cursor.fetchall()
@@ -377,9 +380,22 @@ def execute_query_to_get_data():
         for rows_index, rows in enumerate(data):
             for row_index, row in enumerate(rows):
                 if row_index == 0:
-                    result.append({columns[row_index]: row})
+                    if isinstance(row, Decimal):
+                        result.append({columns[row_index]: format(row, 'f')})
+                    elif isinstance(row, datetime):
+                        result.append({columns[row_index]: row.strftime(
+                            "%Y-%m-%d %H:%M:%S")})
+                    else:
+                        result.append({columns[row_index]: row})
                 else:
-                    result[rows_index][columns[row_index]] = row
+                    if isinstance(row, Decimal):
+                        result[rows_index][columns[row_index]
+                                           ] = format(row, 'f')
+                    elif isinstance(row, datetime):
+                        result[rows_index][columns[row_index]] = row.strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                    else:
+                        result[rows_index][columns[row_index]] = row
 
         system_log_info = {
             "username": user_info["username"],

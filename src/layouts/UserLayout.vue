@@ -224,13 +224,13 @@ export default defineComponent({
               routeTo: "/settings/command",
               activeLink: false,
             },
-            {
-              title: "Docker Services",
-              name: "SettingsDockerService",
-              icon: "keyboard_command_key",
-              routeTo: "/settings/docker-service",
-              activeLink: false,
-            },
+            // {
+            //   title: "Docker Services",
+            //   name: "SettingsDockerService",
+            //   icon: "keyboard_command_key",
+            //   routeTo: "/settings/docker-service",
+            //   activeLink: false,
+            // },
             {
               title: "Integration",
               name: "SettingsIntegration",

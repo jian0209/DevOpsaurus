@@ -1,6 +1,8 @@
+version: '3.3'
+
 services:
   devopsaurus_app:
-    image: devopsaurus:latest
+    image: jian0209/devopsaurus:latest
     container_name: devopsaurus_web
     environment:
       DEBUG: False
@@ -42,8 +44,10 @@ services:
   mysql:
     image: mysql:8.0.38
     container_name: devopsaurus_mysql
+    volumes:
+      - /data/mysql:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: '123456'
+      MYSQL_ROOT_PASSWORD: 'Fxi3fV#'
       MYSQL_DATABASE: 'devopsaurus'
 
   redis:

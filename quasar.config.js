@@ -6,8 +6,6 @@
 import { configure } from "quasar/wrappers";
 import { fileURLToPath } from "node:url";
 
-const envparser = require("./src/config/envparser.js");
-
 export default configure((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature

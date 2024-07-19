@@ -30,8 +30,6 @@ app.register_blueprint(nodes_api)
 app.register_blueprint(redis_api)
 app.register_blueprint(log_api)
 
-print("app.config: ", app.config)
-
 CORS(app, methods=["POST"], supports_credentials=True, max_age=600)
 
 # init db

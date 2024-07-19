@@ -416,7 +416,7 @@ Username: {username}
 Email: {email}
 Group: {group}
 Role: {role}
-Url: {c.FRONTEND_URL}
+Url: {c.WEB_URL}
 
 Please take a moment to login and update your password.
 

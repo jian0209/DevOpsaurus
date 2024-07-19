@@ -280,28 +280,73 @@ def get_redis_list():
             }
 
             redis_list.append({
-                "name": f"{redis.host}-{redis.port}-{redis.database}",
-                "display_name": redis.name,
+                # "name": f"{redis.host}-{redis.port}-{redis.database}",
+                "name": redis.name,
                 "id": redis.id,
                 "get": redis.get,
             })
-        for item in redis_list:
-            conn = connect_to_redis(conn_redis_dict[item["name"]]["host"], conn_redis_dict[item["name"]]
-                                    ["port"], conn_redis_dict[item["name"]]["auth"], conn_redis_dict[item["name"]]["database"])
-            if conn is None:
-                l.error(f"Redis connection error")
-                return response.get_response(response.REDIS_CONN_ERROR)
-            item["name"] = item["display_name"]
-            try:
-                get_data = conn.get(item["get"])
-                item["result"] = get_data.decode() if get_data else "nil"
-            except Exception as e:
-                l.error(f"Redis get error: {str(e)}")
-                item["result"] = "nil"
-            finally:
-                conn.close()
+        # for item in redis_list:
+        #     conn = connect_to_redis(conn_redis_dict[item["name"]]["host"], conn_redis_dict[item["name"]]
+        #                             ["port"], conn_redis_dict[item["name"]]["auth"], conn_redis_dict[item["name"]]["database"])
+        #     if conn is None:
+        #         l.error(f"Redis connection error")
+        #         return response.get_response(response.REDIS_CONN_ERROR)
+        #     item["name"] = item["display_name"]
+        #     try:
+        #         get_data = conn.get(item["get"])
+        #         item["result"] = get_data.decode() if get_data else "nil"
+        #     except Exception as e:
+        #         l.error(f"Redis get error: {str(e)}")
+        #         item["result"] = "nil"
+        #     finally:
+        #         conn.close()
 
         return response.get_response(response.SUCCESS, {"redis": redis_list})
+    except Exception as e:
+        l.error(f"Get redis list failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
+@redis_api.route(f'/{const.VERSION_API}/{const.REDIS_API}/get_redis_result', methods=['POST'])
+def get_redis_result():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, user_info = check_user_account(token, const.READER)
+
+        if not is_allow:
+            l.error(f"User {user_info.get('username')} is not Reader or above")
+            return response.get_response(response.FORBIDDEN)
+
+        get_key = str(request.json.get("get_key", ""))
+        redis_id = str(request.json.get("id", ""))
+
+        redis_detail = Redis.query.filter_by(id=redis_id).first()
+        if not redis_detail:
+            l.error(f"Redis {redis_id} not found")
+            return response.get_response(response.REDIS_NOT_FOUND)
+
+        return_result = {}
+
+        conn = connect_to_redis(
+            redis_detail.host, redis_detail.port, redis_detail.auth, redis_detail.database)
+        if conn is None:
+            l.error(f"Redis connection error")
+            return response.get_response(response.REDIS_CONN_ERROR)
+
+        try:
+            get_result = conn.get(get_key)
+            l.info(f"Get Redis {redis_detail.name} value: {get_result}")
+            return_result["result"] = get_result.decode(
+            ) if get_result else "nil"
+        except Exception as e:
+            l.error(f"Redis get error: {str(e)}")
+            return_result["result"] = "nil"
+        finally:
+            conn.close()
+
+        return response.get_response(response.SUCCESS, {"redis": return_result})
     except Exception as e:
         l.error(f"Get redis list failed: {str(e)}")
         return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
@@ -320,6 +365,7 @@ def set_redis_value():
             return response.get_response(response.FORBIDDEN)
 
         redis_id = int(request.json.get("id", 0))
+        get_key = str(request.json.get("get_key", ""))
         value = str(request.json.get("value", ""))
 
         redis = Redis.query.filter_by(id=redis_id).first()
@@ -334,7 +380,7 @@ def set_redis_value():
             return response.get_response(response.REDIS_CONN_ERROR)
 
         try:
-            conn.set(redis.get, value)
+            conn.set(get_key, value)
         except Exception as e:
             l.error(f"Redis set error: {str(e)}")
             return response.get_response(response.REDIS_SET_ERROR)

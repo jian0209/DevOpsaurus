@@ -8,11 +8,22 @@
       title="get-redis"
     />
     <DialogComponent
-      isInfoDialog
+      isExecuteDialog
       :title="'Redis Information Details'"
-      :subtitle="`${selectedRow.command}`"
+      :subtitle="`${selectedRow.get}`"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
+      @update:dialogStatus="updateDialogStatus"
+      :executeInput="executeInput"
+      @execute:data="executeData"
+      :executeFormList="executeFormList"
+    />
+    <DialogComponent
+      isResultDialog
+      title="Get Redis Result Details"
+      :subtitle="`${resultTitle}`"
+      :result="resultArr"
+      :dialogStatus="resultDialogStatus"
       @update:dialogStatus="updateDialogStatus"
     />
   </div>
@@ -23,8 +34,12 @@ import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
-import { generateColumn } from "src/utils/util.js";
-import { getRedisList } from "src/api/redis";
+import {
+  generateColumn,
+  generateSearchForm,
+  replaceCommandString,
+} from "src/utils/util.js";
+import { getRedisList, getRedisResult } from "src/api/redis";
 
 export default defineComponent({
   name: "GetRedisPage",
@@ -41,11 +56,16 @@ export default defineComponent({
           id: null,
           name: null,
           get: null,
-          result: null,
+          // result: null,
         },
       ],
       infoDialogStatus: ref(false),
+      resultDialogStatus: ref(false),
       selectedRow: ref({}),
+      executeInput: ref([]),
+      executeFormList: ref({}),
+      resultTitle: ref(""),
+      resultArr: ref([]),
     };
   },
   methods: {
@@ -55,14 +75,16 @@ export default defineComponent({
     },
     updateDialogStatus(status) {
       this.infoDialogStatus = status;
+      this.resultDialogStatus = status;
     },
     infoRow(row) {
       this.selectedRow = {
-        Id: row.id,
-        Name: row.name,
-        Get: row.get,
-        Result: row.result,
+        ...row,
       };
+      this.executeInput = generateSearchForm(this.selectedRow.get);
+      this.executeInput.forEach((input) => {
+        this.executeFormList[input.model] = null;
+      });
       this.infoDialogStatus = true;
     },
     async getList() {
@@ -97,6 +119,36 @@ export default defineComponent({
         })
         .finally(() => {
           this.$q.loading.hide();
+        });
+    },
+    async executeData(data) {
+      const submitData = {
+        ...this.selectedRow,
+      };
+
+      submitData.get_key = replaceCommandString(submitData.get, data);
+      console.log(submitData);
+
+      this.$q.loading.show();
+      await getRedisResult(submitData)
+        .then((res) => {
+          if (res.code !== 0) {
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.resultArr = [res.data.redis.result];
+          if (this.resultArr[0] === "") {
+            this.resultArr = ["No result returned."];
+          }
+          this.resultTitle = submitData.get_key;
+          this.resultDialogStatus = true;
+        })
+        .finally(() => {
+          this.$q.loading.hide();
+          this.infoDialogStatus = false;
         });
     },
   },

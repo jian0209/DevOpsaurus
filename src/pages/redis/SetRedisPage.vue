@@ -1,12 +1,17 @@
 <template>
   <div>
     <TitleContainer title="Redis Page" :subtitle="'Set Redis Value'" />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" title="redis-set" />
+    <TableContainer
+      :rows="rowData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="redis-set"
+    />
     <DialogComponent
       isExecuteDialog
       :title="'Redis Information Details'"
       executeBtnTxt="Set"
-      :subtitle="`Name: ${selectedRow.name} | Get: ${selectedRow.get} | Result: ${selectedRow.result}`"
+      :subtitle="`Name: ${selectedRow.name} | Get: ${selectedRow.get}`"
       :dialogStatus="infoDialogStatus"
       :formListDetails="selectedRow"
       @update:dialogStatus="updateDialogStatus"
@@ -22,7 +27,12 @@ import { defineComponent, ref } from "vue";
 import TitleContainer from "src/components/TitleCont.vue";
 import TableContainer from "src/components/TableCont.vue";
 import DialogComponent from "src/components/Dialog.vue";
-import { generateColumn, generateModifyForm } from "src/utils/util.js";
+import {
+  generateColumn,
+  generateModifyForm,
+  generateSearchForm,
+  replaceCommandString,
+} from "src/utils/util.js";
 import { getRedisList, setRedisValue } from "src/api/redis";
 
 export default defineComponent({
@@ -40,7 +50,7 @@ export default defineComponent({
           id: null,
           name: null,
           get: null,
-          result: null,
+          // result: null,
         },
       ],
       executeInput: ref([]),
@@ -60,7 +70,10 @@ export default defineComponent({
     },
     infoRow(row) {
       this.selectedRow = { ...row };
-      this.executeInput = [generateModifyForm()];
+      this.executeInput = [
+        ...generateSearchForm(this.selectedRow.get),
+        generateModifyForm(),
+      ];
       this.infoDialogStatus = true;
     },
     async getList() {
@@ -100,6 +113,7 @@ export default defineComponent({
     async executeData(data) {
       const submitData = {
         id: this.selectedRow.id,
+        get_key: replaceCommandString(this.selectedRow.get, data),
         value: data.value,
       };
 

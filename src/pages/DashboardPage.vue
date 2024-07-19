@@ -9,8 +9,6 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "DashboardPage",
-  setup() {
-    console.log(process.env);
-  },
+  setup() {},
 });
 </script>

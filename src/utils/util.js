@@ -93,6 +93,17 @@ export const replaceCommandString = (str, obj) => {
 export const replaceQueryString = (str, obj) => {
   return str.replace(/{([^{}]*)}/g, (a, b) => {
     let r = obj[b];
+    console.log(r);
+    if (r.includes(",")) {
+      return r
+        .split(",")
+        .map((item) => {
+          return typeof item === "string" || typeof item === "number"
+            ? `'${item}'`
+            : a;
+        })
+        .join(",");
+    }
     return typeof r === "string" || typeof r === "number" ? `'${r}'` : a;
   });
 };

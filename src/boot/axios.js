@@ -9,9 +9,9 @@ import { Notify } from "quasar";
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-console.log(process.env);
+
 const api = axios.create({
-  baseURL: `${process.env.WEB_URL || "http://localhost"}/api/v1`,
+  baseURL: `${process.env.VUE_APP_WEB_URL || "http://localhost"}/api/v1`,
   headers: {
     "Content-Type": "application/json",
   },

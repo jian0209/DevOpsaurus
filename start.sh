@@ -1,5 +1,5 @@
 #! /bin/bash
-set -e
+set -x
 
 # Start the application
 echo "Starting the application..."
@@ -9,7 +9,7 @@ supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 
 # initialize the database
 echo "Initializing the database..."
-mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME < /app/server/init_database.sql
+mysql -h$DATABASE_URL -u"$DATABASE_USERNAME" -p"$DATABASE_PASSWORD" --database=$DATABASE_NAME < /app/server/init_database.sql
 
 # initialize the admin
 echo "Initializing data..."
