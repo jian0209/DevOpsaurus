@@ -9,6 +9,7 @@ export const generateColumn = (
   isOperate = false,
   isRefresh = false,
   isDialog = false,
+  isInfo = false,
 ) => {
   const columns = [];
 
@@ -52,6 +53,15 @@ export const generateColumn = (
                 : val;
       },
       sortable: true,
+    });
+  }
+  if (isInfo) {
+    columns.push({
+      name: "info",
+      field: "info",
+      label: "Info",
+      align: "center",
+      sortable: false,
     });
   }
   if (isOperate) {

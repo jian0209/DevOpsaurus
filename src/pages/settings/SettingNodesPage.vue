@@ -143,7 +143,15 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.rowData, false, true, true);
+      this.columns = generateColumn(
+        this.rowData,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      );
       this.getList();
     },
     goToAddPage() {

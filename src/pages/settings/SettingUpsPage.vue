@@ -138,7 +138,15 @@ export default defineComponent({
   },
   methods: {
     initData() {
-      this.columns = generateColumn(this.dummyData, false, true, true);
+      this.columns = generateColumn(
+        this.dummyData,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      );
     },
     goToAddPage() {
       this.$router.push("/settings/ups/add");

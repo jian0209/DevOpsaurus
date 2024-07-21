@@ -34,13 +34,26 @@
           </q-th>
         </q-tr>
       </template>
-      <template v-slot:body-cell-operate="props">
+      <template v-slot:body-cell-info="props">
         <q-td :props="props">
           <div class="q-gutter-sm">
             <UsualButton
               color="positive"
               label="Info"
               @action:click="infoRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+          </div>
+        </q-td>
+      </template>
+      <template v-slot:body-cell-operate="props">
+        <q-td :props="props">
+          <div class="q-gutter-sm">
+            <UsualButton
+              color="info"
+              label="Clone"
+              @action:click="cloneRow(props.row)"
               style="width: 90px"
               outline
             />
@@ -121,6 +134,9 @@ export default defineComponent({
   methods: {
     infoRow(row) {
       this.$emit("info:row", row);
+    },
+    cloneRow(row) {
+      this.$emit("clone:row", row);
     },
     editRow(row) {
       this.$emit("edit:row", row);

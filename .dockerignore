@@ -1,1 +1,4 @@
 docker_example_file
+dist
+.vscode
+.gitignore

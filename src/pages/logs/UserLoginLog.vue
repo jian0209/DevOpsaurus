@@ -4,7 +4,12 @@
       :title="$t('logsPage.userLogin.title')"
       :subtitle="$t('logsPage.userLogin.subtitle')"
     />
-    <TableContainer :rows="rowData" :columns="columns" @click:row="infoRow" title="user-login-log" />
+    <TableContainer
+      :rows="rowData"
+      :columns="columns"
+      @click:row="infoRow"
+      title="user-login-log"
+    />
     <DialogComponent
       isInfoDialog
       :title="$t('logsPage.userLogin.infoDialog.title')"

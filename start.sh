@@ -1,33 +1,50 @@
 #! /bin/bash
+set -e
 
-# Set the environment variables
-if [ -z "$WEB_URL" ]; then
-  echo "WEB_URL is not set. Exiting..."
+# Build application
+if [ ! -d "/app/client" ]; then
+    mkdir -p /app/client
+    cd /app/build
+    echo "Building the application..."
+    npm install
+    WEB_URL=$WEB_URL npm run build
+    cp -r /app/build/dist/spa/* /app/client
+    rm -rf /app/build
 fi
 
-echo "{\"WEB_URL\": \"$WEB_URL\"}" > /app/client/env.json
+# initialize the database
+if [ -f "/app/server/init_database.sql" ]; then
+    echo "Initializing the database..."
+    mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME < /app/server/init_database.sql
+    rm /app/server/init_database.sql
+fi
+
 
 # Start the application
 echo "Starting the application..."
 
 # use supervisord to start the application
-supervisord -c /etc/supervisor/conf.d/supervisord.conf &
+cd /app/server
+flask run --host=0.0.0.0 --port=9001 &
 
-# initialize the database
-echo "Initializing the database..."
-mysql -h$DATABASE_URL -u"$DATABASE_USERNAME" -p"$DATABASE_PASSWORD" --database=$DATABASE_NAME < /app/server/init_database.sql
-
-# initialize the admin
-echo "Initializing data..."
+cd /app/client
+quasar serve --port 9000 &
+# supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 
 while ! nc -z localhost 9001; do
-  sleep 1
+    echo "Waiting for the application to start..."
+    sleep 1
 done
 
-curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:9001/api/v1/user/init_admin
-curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:9001/api/v1/settings/init
+# get data from mysql and set to variable
+OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME -e "SELECT COUNT(*) FROM d_user_info" -s)
+if [ $OUTPUT -eq 0 ]; then
+    echo "Initializing data..."
+    curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:9001/api/v1/user/init_admin
+    curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:9001/api/v1/settings/init
+    echo "Done initialization."
+fi
 
-echo "Done initialization."
 echo "Application started."
 
 tail -f /dev/null

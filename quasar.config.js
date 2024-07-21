@@ -5,8 +5,10 @@
 
 import { configure } from "quasar/wrappers";
 import { fileURLToPath } from "node:url";
+import { configDotenv } from "dotenv";
 
 export default configure((ctx) => {
+  configDotenv();
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     preFetch: true,
@@ -51,7 +53,7 @@ export default configure((ctx) => {
       // analyze: true,
 
       env: {
-        VUE_APP_WEB_URL: process.env.WEB_URL || "http://localhost",
+        WEB_URL: process.env.WEB_URL || "http://localhost",
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
