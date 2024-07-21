@@ -23,6 +23,13 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.is_clone) {
+      this.databaseDetails.host = this.$route.query.host;
+      this.databaseDetails.port = this.$route.query.port;
+      this.databaseDetails.username = this.$route.query.username;
+    }
+  },
   setup() {
     const $q = useQuasar();
     const { t } = useI18n();

@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      @clone:row="cloneRow($event)"
       title="setting-database"
     />
     <DialogComponent
@@ -307,6 +308,18 @@ export default defineComponent({
       this.getDatabasesForOption(this.formListDetails);
       this.getTablesForOption(this.formListDetails);
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      this.$router.push({
+        path: "/settings/database/add",
+        query: {
+          is_clone: true,
+          host: row.host,
+          port: row.port,
+          username: row.username,
+          password: row.password,
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

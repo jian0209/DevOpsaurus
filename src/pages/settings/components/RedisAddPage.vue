@@ -21,6 +21,14 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.is_clone) {
+      this.redisDetails.host = this.$route.query.host;
+      this.redisDetails.port = this.$route.query.port;
+      this.redisDetails.database = this.$route.query.database;
+      this.redisDetails.auth = this.$route.query.auth;
+    }
+  },
   data() {
     return {
       formList: [

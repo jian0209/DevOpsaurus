@@ -17,6 +17,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      @clone:row="cloneRow($event)"
       title="setting-user"
     />
     <DialogComponent
@@ -212,6 +213,18 @@ export default defineComponent({
     deleteRow(row) {
       this.selectedRow = row.username;
       this.deleteDialogStatus = true;
+    },
+    cloneRow(row) {
+      this.$router.push({
+        path: "/settings/user/add",
+        query: {
+          is_clone: true,
+          role: row.role,
+          group: row.group,
+          mfa_status: row.mfa_status,
+          is_password_force_reset: row.is_password_force_reset,
+        },
+      });
     },
     infoRow(row) {
       this.selectedInfoRow = {

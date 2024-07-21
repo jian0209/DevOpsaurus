@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      @clone:row="cloneRow($event)"
       title="setting-redis"
     />
     <DialogComponent
@@ -175,6 +176,18 @@ export default defineComponent({
     editRow(row) {
       this.formListDetails = { ...row };
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      this.$router.push({
+        path: "/settings/redis/add",
+        query: {
+          is_clone: true,
+          host: row.host,
+          port: row.port,
+          database: row.database,
+          auth: row.auth,
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

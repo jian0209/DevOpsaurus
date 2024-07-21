@@ -20,6 +20,15 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.is_clone) {
+      this.userDetails.group = this.$route.query.group;
+      this.userDetails.role = ROLES_GROUP.find(
+        (role) => role.value === parseInt(this.$route.query.role)
+      );
+      this.userDetails.mfa_status = parseInt(this.$route.query.mfa_status);
+    }
+  },
   data() {
     return {
       formList: [

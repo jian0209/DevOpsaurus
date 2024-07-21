@@ -20,6 +20,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      @clone:row="cloneRow($event)"
       title="setting-command"
     />
     <DialogComponent
@@ -178,6 +179,18 @@ export default defineComponent({
         this.formListDetails[key] = row[key];
       }
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      this.$router.push({
+        path: "/settings/command/add",
+        query: {
+          is_clone: true,
+          host: row.host,
+          username: row.username,
+          ssh_key: row.ssh_key,
+          ssh_port: row.ssh_port,
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

@@ -21,6 +21,14 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.is_clone) {
+      this.commandDetails.host = this.$route.query.host;
+      this.commandDetails.username = this.$route.query.username;
+      this.commandDetails.ssh_key = this.$route.query.ssh_key;
+      this.commandDetails.ssh_port = this.$route.query.ssh_port;
+    }
+  },
   data() {
     return {
       formList: [
