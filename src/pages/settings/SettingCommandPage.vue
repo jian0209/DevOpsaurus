@@ -16,6 +16,7 @@
       :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
@@ -181,6 +182,27 @@ export default defineComponent({
         this.formListDetails[key] = row[key];
       }
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          host: row.host,
+          username: row.username,
+          ssh_port: row.ssh_port,
+          ssh_key: row.ssh_key,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/command/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

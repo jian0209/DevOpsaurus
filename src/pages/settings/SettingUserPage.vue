@@ -17,6 +17,7 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      @clone:row="cloneRow($event)"
       :searchValue="searchValue"
       @search:data="searchData"
       title="setting-user"
@@ -203,6 +204,26 @@ export default defineComponent({
         value: row.role || row.role.value,
       };
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          role: row.role,
+          group: row.group,
+          mfa_status: row.mfa_status,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/user/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.username;

@@ -16,6 +16,7 @@
       :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
@@ -178,6 +179,27 @@ export default defineComponent({
     editRow(row) {
       this.formListDetails = { ...row };
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          host: row.host,
+          port: row.port,
+          database: row.database,
+          auth: row.auth,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/redis/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

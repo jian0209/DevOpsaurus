@@ -16,6 +16,7 @@
       :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
@@ -310,6 +311,27 @@ export default defineComponent({
       this.getDatabasesForOption(this.formListDetails);
       this.getTablesForOption(this.formListDetails);
       this.editDialogStatus = true;
+    },
+    cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          host: row.host,
+          port: row.port,
+          username: row.username,
+          password: row.password,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/database/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
+        },
+      });
     },
     disableRow(row) {
       this.selectedRow = row.name;

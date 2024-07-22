@@ -23,6 +23,21 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
+      );
+      const passedData = JSON.parse(decryptedText);
+      this.databaseDetails.host = passedData.host;
+      this.databaseDetails.port = passedData.port;
+      this.databaseDetails.username = passedData.username;
+      this.databaseDetails.password = passedData.password;
+    }
+  },
   setup() {
     const $q = useQuasar();
     const { t } = useI18n();

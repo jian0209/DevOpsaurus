@@ -21,6 +21,21 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
+      );
+      const passedData = JSON.parse(decryptedText);
+      this.redisDetails.host = passedData.host;
+      this.redisDetails.port = passedData.port;
+      this.redisDetails.database = passedData.database;
+      this.redisDetails.auth = passedData.auth;
+    }
+  },
   data() {
     return {
       formList: [

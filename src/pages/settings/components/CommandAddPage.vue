@@ -21,6 +21,21 @@ export default defineComponent({
   components: {
     SettingsAddCont,
   },
+  created() {
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
+      );
+      const passedData = JSON.parse(decryptedText);
+      this.commandDetails.host = passedData.host;
+      this.commandDetails.username = passedData.username;
+      this.commandDetails.ssh_key = passedData.ssh_key;
+      this.commandDetails.ssh_port = passedData.ssh_port;
+    }
+  },
   data() {
     return {
       formList: [
