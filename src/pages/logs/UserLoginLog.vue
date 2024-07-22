@@ -9,6 +9,7 @@
       :columns="columns"
       @click:row="infoRow"
       title="user-login-log"
+      noSearch
     />
     <DialogComponent
       isInfoDialog

@@ -1,7 +1,7 @@
 import { api } from "src/boot/axios";
 
-export function getRedisList() {
-  return api.post("/redis/get_redis_list", {});
+export function getRedisList(data) {
+  return api.post("/redis/get_redis_list", data);
 }
 
 export function getRedisResult(data) {

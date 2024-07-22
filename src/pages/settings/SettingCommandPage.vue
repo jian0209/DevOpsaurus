@@ -20,6 +20,8 @@
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="setting-command"
     />
     <DialogComponent
@@ -148,6 +150,7 @@ export default defineComponent({
       infoDialogStatus: ref(false),
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -296,9 +299,13 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getCommandList()
+      await getCommandList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -354,6 +361,9 @@ export default defineComponent({
           });
         })
         .finally(() => this.$q.loading.hide());
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

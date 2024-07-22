@@ -257,7 +257,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        commands = Command.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            commands = Command.query.filter(
+                Command.name.like(f"%{search_name}%")).all()
+        else:
+            commands = Command.query.all()
         command_list = []
         for command in commands:
             command_list.append({
@@ -290,7 +295,12 @@ def get_command_list():
             l.error(f"User {user_info.get('username')} is not Editor")
             return response.get_response(response.FORBIDDEN)
 
-        commands = Command.query.filter_by(status=1).all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            commands = Command.query.filter(
+                Command.name.like(f"%{search_name}%")).filter_by(status=1).all()
+        else:
+            commands = Command.query.filter_by(status=1).all()
         command_list = []
         for command in commands:
             command_list.append({

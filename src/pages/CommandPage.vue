@@ -8,6 +8,8 @@
       :rows="rowData"
       :columns="columns"
       @click:row="infoRow"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="command"
     />
     <DialogComponent
@@ -70,6 +72,7 @@ export default defineComponent({
       selectedRow: ref({}),
       resultArr: ref([]),
       resultTitle: ref(""),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -133,9 +136,13 @@ export default defineComponent({
           this.infoDialogStatus = false;
         });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getCommandList()
+      await getCommandList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             this.$q.notify({
@@ -159,6 +166,9 @@ export default defineComponent({
         .finally(() => {
           this.$q.loading.hide();
         });
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

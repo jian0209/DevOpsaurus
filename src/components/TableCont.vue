@@ -1,6 +1,33 @@
 <template>
   <div class="table-cont">
-    <div class="export-btn-cont">
+    <div
+      class="table-top-function-cont"
+      :style="
+        !$props.noSearch
+          ? 'justify-content: space-between'
+          : 'justify-content: flex-end'
+      "
+    >
+      <div class="table-search-cont" v-if="!$props.noSearch">
+        <q-input
+          v-model="$props.searchValue['name']"
+          type="text"
+          class="table-search-input"
+          color="secondary"
+          placeholder="Name"
+          dense
+          outlined
+          clearable
+        />
+        <q-btn
+          color="secondary"
+          icon-right="search"
+          label="Search"
+          no-caps
+          :class="!$props.noSearch ? 'search-btn' : null"
+          @click="searchData"
+        />
+      </div>
       <q-btn
         color="secondary"
         icon-right="archive"
@@ -129,6 +156,8 @@ export default defineComponent({
     rowKey: String,
     noDataLabel: String,
     noClass: Boolean,
+    noSearch: Boolean,
+    searchValue: Object,
     title: String,
   },
   methods: {
@@ -155,6 +184,9 @@ export default defineComponent({
     },
     rowClick(event, row, index) {
       this.$emit("click:row", row);
+    },
+    searchData() {
+      this.$emit("search:data", this.searchValue);
     },
     exportTable() {
       const content = [this.columns.map((col) => wrapCsvValue(col.label))]

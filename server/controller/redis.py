@@ -235,7 +235,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        redis_all = Redis.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            redis_all = Redis.query.filter(
+                Redis.name.like(f"%{search_name}%")).all()
+        else:
+            redis_all = Redis.query.all()
         redis_list = []
         for redis in redis_all:
             redis_list.append({
@@ -268,38 +273,20 @@ def get_redis_list():
             l.error(f"User {user_info.get('username')} is not Reader or above")
             return response.get_response(response.FORBIDDEN)
 
-        redis_all = Redis.query.filter_by(status=1).all()
-        redis_list = []
-        conn_redis_dict = {}
-        for redis in redis_all:
-            conn_redis_dict[f"{redis.host}-{redis.port}-{redis.database}"] = {
-                "host": redis.host,
-                "port": redis.port,
-                "auth": redis.auth,
-                "database": redis.database
-            }
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            redis_all = Redis.query.filter(
+                Redis.name.like(f"%{search_name}%")).filter_by(status=1).all()
+        else:
+            redis_all = Redis.query.filter_by(status=1).all()
 
+        redis_list = []
+        for redis in redis_all:
             redis_list.append({
-                # "name": f"{redis.host}-{redis.port}-{redis.database}",
                 "name": redis.name,
                 "id": redis.id,
                 "get": redis.get,
             })
-        # for item in redis_list:
-        #     conn = connect_to_redis(conn_redis_dict[item["name"]]["host"], conn_redis_dict[item["name"]]
-        #                             ["port"], conn_redis_dict[item["name"]]["auth"], conn_redis_dict[item["name"]]["database"])
-        #     if conn is None:
-        #         l.error(f"Redis connection error")
-        #         return response.get_response(response.REDIS_CONN_ERROR)
-        #     item["name"] = item["display_name"]
-        #     try:
-        #         get_data = conn.get(item["get"])
-        #         item["result"] = get_data.decode() if get_data else "nil"
-        #     except Exception as e:
-        #         l.error(f"Redis get error: {str(e)}")
-        #         item["result"] = "nil"
-        #     finally:
-        #         conn.close()
 
         return response.get_response(response.SUCCESS, {"redis": redis_list})
     except Exception as e:

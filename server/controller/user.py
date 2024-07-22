@@ -575,7 +575,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        users = User.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            users = User.query.filter(
+                User.username.like(f"%{search_name}%")).all()
+        else:
+            users = User.query.all()
         user_list = []
         for user in users:
             user_list.append({

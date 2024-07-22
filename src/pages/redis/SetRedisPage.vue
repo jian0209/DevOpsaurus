@@ -5,6 +5,8 @@
       :rows="rowData"
       :columns="columns"
       @click:row="infoRow"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="redis-set"
     />
     <DialogComponent
@@ -57,6 +59,7 @@ export default defineComponent({
       executeFormList: ref({ value: null }),
       infoDialogStatus: ref(false),
       selectedRow: ref({}),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -76,9 +79,13 @@ export default defineComponent({
       ];
       this.infoDialogStatus = true;
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getRedisList()
+      await getRedisList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -145,6 +152,9 @@ export default defineComponent({
           this.executeFormList = { value: null };
           this.infoDialogStatus = false;
         });
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

@@ -9,6 +9,7 @@
       :columns="columns"
       @click:row="infoRow"
       title="system-log"
+      noSearch
     />
     <DialogComponent
       isInfoDialog

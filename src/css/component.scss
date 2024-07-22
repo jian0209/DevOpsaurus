@@ -118,12 +118,23 @@
   font-size: 16px;
 }
 
-.export-btn-cont {
+.table-top-function-cont {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin: 20px 0;
+  // padding: 0 40px;
 }
 
 .export-btn {
   margin-right: 40px;
+}
+
+.table-search-cont {
+  margin-left: 40px;
+  display: flex;
+}
+
+.table-search-input {
+  width: 200px;
+  margin-right: 20px;
 }

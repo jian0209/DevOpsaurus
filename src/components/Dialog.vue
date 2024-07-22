@@ -133,6 +133,7 @@
               :columns="$props.dialogColumns"
               :title="$props.title"
               noClass
+              noSearch
             />
           </q-card-section>
           <div class="add-btn-cont">

@@ -288,7 +288,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        data_database = Database.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            data_database = Database.query.filter(
+                Database.name.like(f"%{search_name}%")).all()
+        else:
+            data_database = Database.query.all()
         databases_list = []
         for database in data_database:
             databases_list.append({
@@ -324,9 +329,14 @@ def get_database_list():
             l.error(f"User {user_info.get('username')} is not Reader or above")
             return response.get_response(response.FORBIDDEN)
 
-        data_database = Database.query.filter_by(status=1).all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            database_all = Database.query.filter(
+                Database.name.like(f"%{search_name}%")).filter_by(status=1).all()
+        else:
+            database_all = Database.query.filter_by(status=1).all()
         databases_list = []
-        for database in data_database:
+        for database in database_all:
             databases_list.append({
                 "id": database.id,
                 "name": database.name,
