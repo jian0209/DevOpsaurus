@@ -115,6 +115,7 @@ export default defineComponent({
   setup() {
     const $q = useQuasar();
     const { t } = useI18n();
+    const crypto = new AESCipher();
     const formList = ref([
       {
         label: "Name",
@@ -186,6 +187,7 @@ export default defineComponent({
       $q.loading.show();
       const data = { ...row };
       data.database = row.database.value || data.database;
+      data.password = crypto.encrypt(data.password);
       await getTables(data)
         .then((res) => {
           formList.value[6].option = [];
@@ -219,7 +221,8 @@ export default defineComponent({
     const getDatabasesForOption = async (data) => {
       // get databases
       $q.loading.show();
-      await getDatabases(data)
+      const submitData = { ...data, password: crypto.encrypt(data.password) };
+      await getDatabases(submitData)
         .then((res) => {
           formList.value[5].option = [];
           if (res.code !== 0) {
@@ -253,6 +256,7 @@ export default defineComponent({
       databaseDetails,
       getTablesForOption,
       getDatabasesForOption,
+      crypto,
     };
   },
   data() {
@@ -282,7 +286,6 @@ export default defineComponent({
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
       searchValue: ref({ name: null }),
-      crypto: new AESCipher(),
     };
   },
   methods: {

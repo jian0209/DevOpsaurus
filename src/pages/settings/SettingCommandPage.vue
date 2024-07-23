@@ -368,7 +368,11 @@ export default defineComponent({
     },
     async testConnect() {
       this.$q.loading.show();
-      await testCommand(this.formListDetails)
+      const submitData = {
+        ...this.formListDetails,
+        ssh_key: this.crypto.encrypt(this.formListDetails.ssh_key),
+      };
+      await testCommand(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {

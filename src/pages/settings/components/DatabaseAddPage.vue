@@ -17,6 +17,7 @@ import { addDatabase, getDatabases, getTables } from "src/api/settings";
 import "src/css/settingsScreen.scss";
 import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
+import AESCipher from "src/utils/crypto";
 
 export default defineComponent({
   name: "DatabaseAddPage",
@@ -41,6 +42,7 @@ export default defineComponent({
   setup() {
     const $q = useQuasar();
     const { t } = useI18n();
+    const crypto = new AESCipher();
     const formList = ref([
       {
         label: "Name",
@@ -111,7 +113,11 @@ export default defineComponent({
       $q.loading.show();
       if (!databaseDetails.value.database) {
         // get databases
-        await getDatabases(databaseDetails.value)
+        const submitData = {
+          ...databaseDetails.value,
+          password: crypto.encrypt(databaseDetails.value.password),
+        };
+        await getDatabases(submitData)
           .then((res) => {
             if (res.code !== 0) {
               if (res.code === 9001) {
@@ -143,6 +149,7 @@ export default defineComponent({
         const data = {
           ...databaseDetails.value,
           database: databaseDetails.value.database.value,
+          password: crypto.encrypt(databaseDetails.value.password),
         };
         await getTables(data)
           .then((res) => {
@@ -177,6 +184,7 @@ export default defineComponent({
       formList,
       databaseDetails,
       getDatabaseAndTable,
+      crypto,
     };
   },
   methods: {
@@ -185,6 +193,7 @@ export default defineComponent({
         ...this.databaseDetails,
         database: this.databaseDetails.database.value,
         table: this.databaseDetails.table.value,
+        password: this.crypto.encrypt(this.databaseDetails.password),
       };
       this.$q.loading.show();
       await addDatabase(data)

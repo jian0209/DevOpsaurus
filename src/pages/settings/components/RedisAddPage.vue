@@ -15,6 +15,7 @@ import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import { addRedis, testRedis } from "src/api/settings.js";
 import "src/css/settingsScreen.scss";
+import AESCipher from "src/utils/crypto";
 
 export default defineComponent({
   name: "RedisAddPage",
@@ -78,12 +79,17 @@ export default defineComponent({
         auth: null,
         get: null,
       },
+      crypto: new AESCipher(),
     };
   },
   methods: {
     async add() {
       this.$q.loading.show();
-      await addRedis(this.redisDetails)
+      const submitData = {
+        ...this.redisDetails,
+        auth: this.crypto.encrypt(this.redisDetails.auth),
+      };
+      await addRedis(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -111,7 +117,11 @@ export default defineComponent({
     },
     async testRedisConnection() {
       this.$q.loading.show();
-      await testRedis(this.redisDetails)
+      const submitData = {
+        ...this.redisDetails,
+        auth: this.crypto.encrypt(this.redisDetails.auth),
+      };
+      await testRedis(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {

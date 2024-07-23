@@ -11,9 +11,12 @@ from utils.logs import save_system_log
 from utils.helper import connect_to_database
 from decimal import Decimal
 from datetime import datetime
+from utils.crypto import AESCipher
+from conf.config import Config as c
 
 
 database_api = Blueprint('database_api', __name__)
+aes_cipher = AESCipher(c.ENCRYPT_KEY)
 
 
 @database_api.route(f'/{const.VERSION_API}/{const.DATABASE_API}/add', methods=['POST'])
@@ -221,10 +224,12 @@ def get_databases():
         port = int(request.json.get("port", 3306))
         password = str(request.json.get("password", ""))
 
+        decrypted_password = aes_cipher.decrypt(password)
+
         databases = tuple()
         database_list = []
 
-        conn = connect_to_database(host, username, password, port)
+        conn = connect_to_database(host, username, decrypted_password, port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
@@ -258,9 +263,11 @@ def get_tables():
         password = str(request.json.get("password", ""))
         database = str(request.json.get("database", ""))
 
+        decrypted_password = aes_cipher.decrypt(password)
+
         table_list = []
 
-        conn = connect_to_database(host, username, password, port)
+        conn = connect_to_database(host, username, decrypted_password, port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
@@ -373,8 +380,10 @@ def execute_query_to_get_data():
             l.error(f"Database {database_id} not found")
             return response.get_response(response.DATABASE_NOT_FOUND)
 
+        decrypted_password = aes_cipher.decrypt(data_database.password)
+
         conn = connect_to_database(
-            data_database.host, data_database.username, data_database.password, data_database.port)
+            data_database.host, data_database.username, decrypted_password, data_database.port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)

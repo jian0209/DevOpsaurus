@@ -366,7 +366,11 @@ export default defineComponent({
     },
     async testRedisConnection(data) {
       this.$q.loading.show();
-      await testRedis(data)
+      const submitData = {
+        ...data,
+        auth: this.crypto.encrypt(data.auth),
+      };
+      await testRedis(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {

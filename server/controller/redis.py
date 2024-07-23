@@ -9,10 +9,11 @@ from utils.message import send_all_message
 from model.db_init import db
 from utils.logs import save_system_log
 from utils.helper import connect_to_redis
-import redis
-
+from utils.crypto import AESCipher
+from conf.config import Config as c
 
 redis_api = Blueprint('redis_api', __name__)
+aes_cipher = AESCipher(c.ENCRYPT_KEY)
 
 
 @redis_api.route(f'/{const.VERSION_API}/{const.REDIS_API}/add', methods=['POST'])
@@ -211,8 +212,10 @@ def test_redis():
         port = int(request.json.get("port", 6379))
         auth = str(request.json.get("auth", ""))
 
+        decrypt_auth = aes_cipher.decrypt(auth)
+
         try:
-            conn = connect_to_redis(host, port, auth)
+            conn = connect_to_redis(host, port, decrypt_auth)
             conn.ping()
             conn.close()
         except Exception as e:
@@ -316,8 +319,10 @@ def get_redis_result():
 
         return_result = {}
 
+        decrypt_auth = aes_cipher.decrypt(redis_detail.auth)
+
         conn = connect_to_redis(
-            redis_detail.host, redis_detail.port, redis_detail.auth, redis_detail.database)
+            redis_detail.host, redis_detail.port, decrypt_auth, redis_detail.database)
         if conn is None:
             l.error(f"Redis connection error")
             return response.get_response(response.REDIS_CONN_ERROR)
@@ -360,8 +365,10 @@ def set_redis_value():
             l.error(f"Redis {redis_id} not found")
             return response.get_response(response.REDIS_NOT_FOUND)
 
+        decrypt_auth = aes_cipher.decrypt(redis.auth)
+
         conn = connect_to_redis(redis.host, redis.port,
-                                redis.auth, redis.database)
+                                decrypt_auth, redis.database)
         if conn is None:
             l.error(f"Redis connection error")
             return response.get_response(response.REDIS_CONN_ERROR)

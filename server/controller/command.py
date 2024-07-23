@@ -10,9 +10,12 @@ from model.db_init import db
 from utils.logs import save_system_log
 import paramiko
 from io import StringIO
+from utils.crypto import AESCipher
+from conf.config import Config as c
 
 
 command_api = Blueprint('command_api', __name__)
+aes_cipher = AESCipher(c.ENCRYPT_KEY)
 
 
 @command_api.route(f'/{const.VERSION_API}/{const.COMMAND_API}/add', methods=['POST'])
@@ -214,10 +217,12 @@ def test_command():
         ssh_key = str(request.json.get("ssh_key", ""))
         ssh_port = int(request.json.get("ssh_port", 22))
 
+        decrypt_ssh_key = aes_cipher.decrypt(ssh_key)
+
         try:
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            key_file = StringIO(ssh_key)
+            key_file = StringIO(decrypt_ssh_key)
             try:
                 private_key = paramiko.Ed25519Key.from_private_key(key_file)
             except paramiko.SSHException:
@@ -340,13 +345,13 @@ def execute():
         username = command_details.username
         ssh_key = command_details.ssh_key
         ssh_port = command_details.ssh_port
-        # execute_command = '''curl --request POST '127.0.0.1:9614/blockScan/start' --header 'Content-Type: application/json' --data-raw '{"currencyType":"ftm_scan_block"}' '''
-        l.info(f"Execute Command: {execute_command}")
+
+        decrypt_ssh_key = aes_cipher.decrypt(ssh_key)
 
         try:
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            key_file = StringIO(ssh_key)
+            key_file = StringIO(decrypt_ssh_key)
             try:
                 private_key = paramiko.Ed25519Key.from_private_key(key_file)
             except paramiko.SSHException:

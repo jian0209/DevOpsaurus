@@ -15,6 +15,7 @@ import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import "src/css/settingsScreen.scss";
 import { addCommand, testCommand } from "src/api/settings";
+import AESCipher from "src/utils/crypto";
 
 export default defineComponent({
   name: "CommandAddPage",
@@ -78,11 +79,15 @@ export default defineComponent({
         ssh_port: null,
         command: null,
       },
+      crypto: new AESCipher(),
     };
   },
   methods: {
     async add() {
-      const data = this.commandDetails;
+      const data = {
+        ...this.commandDetails,
+        ssh_key: this.crypto.encrypt(this.commandDetails.ssh_key),
+      };
       this.$q.loading.show();
       await addCommand(data)
         .then((res) => {
@@ -110,7 +115,11 @@ export default defineComponent({
     },
     async testCommand() {
       this.$q.loading.show();
-      await testCommand(this.commandDetails)
+      const submitData = {
+        ...this.commandDetails,
+        ssh_key: this.crypto.encrypt(this.commandDetails.ssh_key),
+      };
+      await testCommand(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
