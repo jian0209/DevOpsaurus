@@ -78,6 +78,22 @@
         <q-td :props="props">
           <div class="q-gutter-sm">
             <UsualButton
+              v-if="props.row.is_favourite === 0"
+              color="positive"
+              label="Star"
+              @action:click="favouriteRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+            <UsualButton
+              v-if="props.row.is_favourite === 1"
+              color="accent"
+              label="Star"
+              @action:click="unFavouriteRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+            <UsualButton
               color="info"
               label="Clone"
               @action:click="cloneRow(props.row)"
@@ -175,6 +191,12 @@ export default defineComponent({
     },
     enableRow(row) {
       this.$emit("enable:row", row);
+    },
+    favouriteRow(row) {
+      this.$emit("favourite:row", row);
+    },
+    unFavouriteRow(row) {
+      this.$emit("unFavourite:row", row);
     },
     deleteRow(row) {
       this.$emit("delete:row", row);

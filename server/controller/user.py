@@ -377,7 +377,6 @@ def add():
         group = str(request.json.get("group", ""))
         role = int(request.json.get("role", 0))
         mfa_status = int(request.json.get("mfa_status", 0))
-        is_password_force_reset = const.ENABLED
         encrypted_password = encrypt_password(password)
 
         # Check if user already exists
@@ -390,6 +389,7 @@ def add():
         # unix timestamp
         time_now = int(time.time())
         status = c.ENABLED
+        is_password_force_reset = const.ENABLED
         is_favourite = c.DISABLED
 
         # write to db
@@ -550,7 +550,7 @@ def edit_favourite():
         db.session.commit()
 
         l.info(
-            f"Admin: {admin_info['username']} edited User {username} status")
+            f"Admin: {admin_info['username']} edited User {username} favourite")
         save_system_log({
             "username": admin_info["username"],
             "role": admin_info["role"],
@@ -634,6 +634,7 @@ def get_list():
                 "group": user.group,
                 "role": user.role,
                 "mfa_status": user.mfa_status,
+                # "is_favourite": user.is_favourite,
                 "status": user.status,
                 "is_password_force_reset": user.is_password_force_reset,
                 "created_at": user.created_at * 1000

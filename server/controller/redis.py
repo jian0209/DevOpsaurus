@@ -32,6 +32,7 @@ def add():
         auth = str(request.json.get("auth", ""))
         database = int(request.json.get("database", 0))
         get = str(request.json.get("get", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
 
         # Check if user already exists
         redis = Redis.query.filter_by(name=name).first()
@@ -45,7 +46,7 @@ def add():
         status = 1
 
         # write to db
-        add_redis = Redis(name=name, host=host, port=port, auth=auth, database=database, get=get, status=status,
+        add_redis = Redis(name=name, host=host, port=port, auth=auth, database=database, get=get, is_favourite=is_favourite, status=status,
                           created_at=time_now)
 
         db.session.add(add_redis)
@@ -190,6 +191,53 @@ def edit_status_redis():
             "created_at": int(time.time())
         })
 
+        send_all_message(
+            f"{admin_info['username']} edited Redis {name} status to {status_name}")
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit Command status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
+@redis_api.route(f'/{const.VERSION_API}/{const.REDIS_API}/edit_favourite', methods=['POST'])
+def edit_favourite_redis():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        name = str(request.json.get("name", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        redis = Redis.query.filter_by(name=name).first()
+        if not redis:
+            l.error(f"Redis {name} not found")
+            return response.get_response(response.REDIS_NOT_FOUND)
+
+        redis.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited Redis {name} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit Redis Status",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} Redis {name}",
+            "created_at": int(time.time())
+        })
+
+        send_all_message(
+            f"{admin_info['username']} {favourite_name} Redis {name}")
+
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit Command status failed: {str(e)}")
@@ -254,6 +302,7 @@ def get_list():
                 "auth": redis.auth,
                 "database": redis.database,
                 "get": redis.get,
+                "is_favourite": redis.is_favourite,
                 "status": redis.status,
                 "created_at": redis.created_at * 1000
             })

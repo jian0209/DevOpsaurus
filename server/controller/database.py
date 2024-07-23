@@ -38,6 +38,7 @@ def add():
         table = str(request.json.get("table", ""))
         select = str(request.json.get("select", ""))
         parameter = str(request.json.get("parameter", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
 
         # Check if user already exists
         data_database = Database.query.filter_by(name=name).first()
@@ -51,7 +52,7 @@ def add():
 
         # write to db
         add_database = Database(name=name, host=host, username=username, password=password, port=port,
-                                database=database, table=table, select=select, parameter=parameter, status=status, created_at=time_now)
+                                database=database, table=table, select=select, parameter=parameter, is_favourite=is_favourite, status=status, created_at=time_now)
 
         db.session.add(add_database)
         db.session.commit()
@@ -200,6 +201,52 @@ def edit_status_database():
             "description": f"Admin: {admin_info['username']} edited Database {name} status to {status_name}",
             "created_at": int(time.time())
         })
+        send_all_message(
+            f"{admin_info['username']} edited Database {name} status to {status_name}")
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit database status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
+@database_api.route(f'/{const.VERSION_API}/{const.DATABASE_API}/edit_favourite', methods=['POST'])
+def edit_favourite_database():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        name = str(request.json.get("name", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        data_database = Database.query.filter_by(name=name).first()
+        if not data_database:
+            l.error(f"Database {name} not found")
+            return response.get_response(response.DATABASE_NOT_FOUND)
+
+        data_database.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited Database {name} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit Database Favourite",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} Database {name}",
+            "created_at": int(time.time())
+        })
+
+        send_all_message(
+            f"{admin_info['username']} {favourite_name} Database {name}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
@@ -314,6 +361,7 @@ def get_list():
                 "table": database.table,
                 "select": database.select,
                 "parameter": database.parameter,
+                "is_favourite": database.is_favourite,
                 "status": database.status,
                 "created_at": database.created_at * 1000
             })

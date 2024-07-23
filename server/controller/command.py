@@ -34,6 +34,7 @@ def add():
         ssh_key = str(request.json.get("ssh_key", ""))
         ssh_port = int(request.json.get("ssh_port", 0))
         command_param = str(request.json.get("command", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
 
         # Check if user already exists
         command = Command.query.filter_by(name=name).first()
@@ -48,7 +49,7 @@ def add():
 
         # write to db
         command = Command(name=name, host=host, username=username, ssh_key=ssh_key, ssh_port=ssh_port,
-                          command=command_param, status=status, created_at=time_now)
+                          command=command_param, is_favourite=is_favourite, status=status, created_at=time_now)
 
         db.session.add(command)
         db.session.commit()
@@ -202,6 +203,49 @@ def edit_status_command():
         pass
 
 
+@command_api.route(f'/{const.VERSION_API}/{const.COMMAND_API}/edit_favourite', methods=['POST'])
+def edit_favourite_command():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        name = str(request.json.get("name", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        command = Command.query.filter_by(name=name).first()
+        if not command:
+            l.error(f"Command {name} not found")
+            return response.get_response(response.COMMAND_NOT_FOUND)
+
+        command.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited Command {name} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit Command Status",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} Command {name}",
+            "created_at": int(time.time())
+        })
+        send_all_message(
+            f"{admin_info['username']} {favourite_name} Command {name}")
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit Command status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
 @command_api.route(f'/{const.VERSION_API}/{const.COMMAND_API}/test', methods=['POST'])
 def test_command():
     try:
@@ -278,6 +322,7 @@ def get_list():
                 "ssh_key": command.ssh_key,
                 "ssh_port": command.ssh_port,
                 "command": command.command,
+                "is_favourite": command.is_favourite,
                 "status": command.status,
                 "created_at": command.created_at * 1000
             })

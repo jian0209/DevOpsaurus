@@ -34,6 +34,10 @@ export function editStatusRedis(data) {
   return api.post("/redis/edit_status", data);
 }
 
+export function editFavouriteRedis(data) {
+  return api.post("/redis/edit_favourite", data);
+}
+
 export function deleteRedis(data) {
   return api.post("/redis/delete", data);
 }
@@ -88,6 +92,10 @@ export function editStatusDatabase(data) {
   return api.post("/database/edit_status", data);
 }
 
+export function editFavouriteDatabase(data) {
+  return api.post("/database/edit_favourite", data);
+}
+
 export function deleteDatabase(data) {
   return api.post("/database/delete", data);
 }
@@ -116,6 +124,10 @@ export function editCommand(data) {
 
 export function editStatusCommand(data) {
   return api.post("/command/edit_status", data);
+}
+
+export function editFavouriteCommand(data) {
+  return api.post("/command/edit_favourite", data);
 }
 
 export function deleteCommand(data) {

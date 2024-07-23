@@ -14,12 +14,13 @@ def init_admin_account(username: str, password: str, email: str, is_init: bool =
     mfa_status = const.DISABLED
     is_password_force_reset = const.DISABLED
     status = const.ENABLED
+    is_favourite = const.DISABLED
     created_at = int(time.time())
 
     is_existed = User.query.filter_by(username=username).first()
 
     user = User(id=admin_id, username=username, password=encrypted_password, email=email, group=group,
-                role=role, mfa_status=mfa_status, is_password_force_reset=is_password_force_reset, status=status, created_at=created_at)
+                role=role, mfa_status=mfa_status, is_password_force_reset=is_password_force_reset, is_favourite=is_favourite, status=status, created_at=created_at)
 
     if not is_init and is_existed:
         l.info(f"Delete existed {username}")

@@ -19,6 +19,8 @@
       @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
+      @favourite:row="favouriteRow($event)"
+      @unFavourite:row="unFavouriteRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
       :searchValue="searchValue"
@@ -51,6 +53,20 @@
       @submit:edit="submitEditStatus(0)"
     />
     <DialogComponent
+      title="Star Redis"
+      :dialogStatus="favouriteDialogStatus"
+      :subtitle="`This Will Display Redis {${selectedRow}} on Dashboard Page`"
+      @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitFavouriteStatus(1)"
+    />
+    <DialogComponent
+      title="Un-Star Redis"
+      :dialogStatus="unFavoriteDialogStatus"
+      :subtitle="`This Will Hide Redis {${selectedRow}} on Dashboard Page`"
+      @update:dialogStatus="updateDialogStatus"
+      @submit:edit="submitFavouriteStatus(0)"
+    />
+    <DialogComponent
       title="Delete Redis"
       :dialogStatus="deleteDialogStatus"
       :subtitle="`This Will Delete Redis Record {${selectedRow}}`"
@@ -80,6 +96,7 @@ import {
   getRedisList,
   editRedis,
   editStatusRedis,
+  editFavouriteRedis,
   deleteRedis,
   testRedis,
 } from "src/api/settings.js";
@@ -106,6 +123,7 @@ export default defineComponent({
           database: null,
           auth: null,
           get: null,
+          is_favourite: null,
           status: null,
           created_at: null,
         },
@@ -147,6 +165,8 @@ export default defineComponent({
       editDialogStatus: ref(false),
       enableDialogStatus: ref(false),
       disableDialogStatus: ref(false),
+      favouriteDialogStatus: ref(false),
+      unFavoriteDialogStatus: ref(false),
       deleteDialogStatus: ref(false),
       infoDialogStatus: ref(false),
       selectedInfoRow: ref({}),
@@ -175,6 +195,8 @@ export default defineComponent({
       this.editDialogStatus = status;
       this.enableDialogStatus = status;
       this.disableDialogStatus = status;
+      this.favouriteDialogStatus = status;
+      this.unFavoriteDialogStatus = status;
       this.deleteDialogStatus = status;
       this.infoDialogStatus = status;
     },
@@ -211,6 +233,14 @@ export default defineComponent({
       this.selectedRow = row.name;
       this.enableDialogStatus = true;
     },
+    favouriteRow(row) {
+      this.selectedRow = row.name;
+      this.favouriteDialogStatus = true;
+    },
+    unFavouriteRow(row) {
+      this.selectedRow = row.name;
+      this.unFavoriteDialogStatus = true;
+    },
     deleteRow(row) {
       this.selectedRow = row.name;
       this.deleteDialogStatus = true;
@@ -223,6 +253,7 @@ export default defineComponent({
         Database: row.database,
         Auth: row.auth,
         Get: row.get,
+        Favourite: row.is_favourite ? "Yes" : "No",
         Status: STATUS[row.status],
         "Created At": moment(row.created_at).format("YYYY-MM-DD HH:mm:ss"),
       };
@@ -281,6 +312,40 @@ export default defineComponent({
           }
           this.$q.notify({
             message: `${status ? "Enable" : "Disable"} "${
+              this.selectedRow
+            }" successfully!`,
+            type: "positive",
+          });
+        })
+        .finally(() => {
+          this.getList();
+          this.$q.loading.hide();
+        });
+    },
+    async submitFavouriteStatus(status) {
+      this.$q.loading.show();
+      const data = {
+        name: this.selectedRow,
+        is_favourite: status || 0,
+      };
+      await editFavouriteRedis(data)
+        .then((res) => {
+          if (res.code !== 0) {
+            if (res.code === 9001) {
+              this.$q.notify({
+                message: `${res.data.msg || "Unknown Error"}`,
+                type: "negative",
+              });
+              return;
+            }
+            this.$q.notify({
+              message: this.$t(`api.${res.code || "unknown"}`),
+              type: "negative",
+            });
+            return;
+          }
+          this.$q.notify({
+            message: `${status ? "Star" : "Un-Star"} "${
               this.selectedRow
             }" successfully!`,
             type: "positive",
@@ -359,6 +424,7 @@ export default defineComponent({
           for (const row of this.rowData) {
             row.auth = this.crypto.decrypt(row.auth);
           }
+          console.log(this.rowData);
         })
         .finally(() => {
           this.$q.loading.hide();
