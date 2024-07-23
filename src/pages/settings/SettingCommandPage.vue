@@ -77,6 +77,7 @@ import { generateColumn } from "src/utils/util.js";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
+import AESCipher from "src/utils/crypto";
 import {
   getCommandList,
   editCommand,
@@ -152,6 +153,7 @@ export default defineComponent({
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
       searchValue: ref({ name: null }),
+      crypto: new AESCipher(),
     };
   },
   methods: {
@@ -230,6 +232,7 @@ export default defineComponent({
     },
     async submitEdit(data) {
       this.$q.loading.show();
+      data.ssh_key = this.crypto.encrypt(data.ssh_key);
       await editCommand(data)
         .then((res) => {
           if (res.code !== 0) {
@@ -353,6 +356,10 @@ export default defineComponent({
             this.rowData = [];
           } else {
             this.rowData = res.data.commands;
+          }
+
+          for (const row of this.rowData) {
+            row.ssh_key = this.crypto.decrypt(row.ssh_key);
           }
         })
         .finally(() => {

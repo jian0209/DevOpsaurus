@@ -9,5 +9,6 @@ class Nodes(db.Model):
     group_url = db.Column(db.String(500), nullable=False)
     target_url = db.Column(db.String(500), nullable=False)
     fetch_parameter = db.Column(db.String(200), nullable=True)
+    is_favourite = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, default=0)
     created_at = db.Column(db.Integer, default=0)

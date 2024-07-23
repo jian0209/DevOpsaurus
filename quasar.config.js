@@ -54,7 +54,7 @@ export default configure((ctx) => {
 
       env: {
         WEB_URL: process.env.WEB_URL || "http://localhost",
-        ENCRYPT_KEY: process.env.ENCRYPT_KEY || "a-secret-key",
+        ENCRYPT_KEY: process.env.ENCRYPT_KEY || "devopsaurus",
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

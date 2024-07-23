@@ -90,6 +90,7 @@ import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import { generateColumn } from "src/utils/util.js";
+import AESCipher from "src/utils/crypto";
 import moment from "moment";
 import {
   getDatabaseList,
@@ -281,6 +282,7 @@ export default defineComponent({
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
       searchValue: ref({ name: null }),
+      crypto: new AESCipher(),
     };
   },
   methods: {
@@ -364,6 +366,7 @@ export default defineComponent({
       this.$q.loading.show();
       data.database = data.database.value || data.database;
       data.table = data.table.value || data.table;
+      data.password = this.crypto.encrypt(data.password);
       await editDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
@@ -487,6 +490,10 @@ export default defineComponent({
             this.rowData = [];
           } else {
             this.rowData = res.data.databases;
+          }
+
+          for (const row of this.rowData) {
+            row.password = this.crypto.decrypt(row.password);
           }
         })
         .finally(() => {

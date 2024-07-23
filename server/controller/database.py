@@ -379,7 +379,6 @@ def execute_query_to_get_data():
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
 
-        l.info(f"Query: {query}")
         with conn.cursor() as cursor:
             cursor.execute(query)
             data = cursor.fetchall()

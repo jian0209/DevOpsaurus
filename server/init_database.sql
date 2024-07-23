@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_user_info` (
   `mfa_secret_key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'mfa secret key',
   `is_password_force_reset` int DEFAULT 0 NOT NULL COMMENT 'password force reset status, 0: disable, 1: enable',
   `role` int DEFAULT 0 NOT NULL COMMENT 'user role, 0: visitor, 1: reader, 2: writer, 3: admin',
+  `is_favourite` int DEFAULT 0 NOT NULL COMMENT 'favourite status, 0: disable, 1: enable',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
   PRIMARY KEY (`id`), -- 将 id 字段设置为主键
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_redis` (
   `auth` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'password for redis',
   `database` int DEFAULT 0 NOT NULL COMMENT 'database for redis',
   `get` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'get key',
+  `is_favourite` int DEFAULT 0 NOT NULL COMMENT 'favourite status, 0: disable, 1: enable',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
   PRIMARY KEY (`id`), -- 将 id 字段设置为主键
@@ -71,6 +73,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_nodes` (
   `group_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'group url to which the node belongs',
   `target_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'target url for node',
   `fetch_parameter` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'fetch parameter for node',
+  `is_favourite` int DEFAULT 0 NOT NULL COMMENT 'favourite status, 0: disable, 1: enable',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
   PRIMARY KEY (`id`), -- 将 id 字段设置为主键
@@ -88,6 +91,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_database` (
   `table` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'table name',
   `select` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'select query',
   `parameter` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'parameter name',
+  `is_favourite` int DEFAULT 0 NOT NULL COMMENT 'favourite status, 0: disable, 1: enable',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
   PRIMARY KEY (`id`), -- 将 id 字段设置为主键
@@ -102,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_command` (
   `ssh_key` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'ssh public key',
   `ssh_port` int DEFAULT 22 NOT NULL COMMENT 'port for ssh',
   `command` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'command to execute',
+  `is_favourite` int DEFAULT 0 NOT NULL COMMENT 'favourite status, 0: disable, 1: enable',
   `status` int DEFAULT 0 NOT NULL COMMENT 'status, 0: inactive, 1: active',
   `created_at` int NOT NULL DEFAULT 0 COMMENT 'created unix timestamp',
   PRIMARY KEY (`id`), -- 将 id 字段设置为主键

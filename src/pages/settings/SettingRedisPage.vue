@@ -83,6 +83,7 @@ import {
   deleteRedis,
   testRedis,
 } from "src/api/settings.js";
+import AESCipher from "src/utils/crypto";
 import "src/css/settingsScreen.scss";
 
 export default defineComponent({
@@ -151,6 +152,7 @@ export default defineComponent({
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
       searchValue: ref({ name: null }),
+      crypto: new AESCipher(),
     };
   },
   methods: {
@@ -228,6 +230,7 @@ export default defineComponent({
     },
     async submitEdit(data) {
       this.$q.loading.show();
+      data.auth = this.crypto.encrypt(data.auth);
       await editRedis(data)
         .then((res) => {
           if (res.code !== 0) {
@@ -351,6 +354,10 @@ export default defineComponent({
             this.rowData = [];
           } else {
             this.rowData = res.data.redis;
+          }
+
+          for (const row of this.rowData) {
+            row.auth = this.crypto.decrypt(row.auth);
           }
         })
         .finally(() => {

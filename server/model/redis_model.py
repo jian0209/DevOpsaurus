@@ -10,5 +10,6 @@ class Redis(db.Model):
     auth = db.Column(db.String(200), default='')
     database = db.Column(db.Integer, default=0)
     get = db.Column(db.String(200))
+    is_favourite = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, default=0)
     created_at = db.Column(db.TIMESTAMP)

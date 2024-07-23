@@ -10,6 +10,7 @@ import qrcode
 import pymysql
 from log import logger as l
 import redis
+from Crypto.Cipher import AES
 
 
 def generate_random_string(length: int = 20) -> str:
@@ -75,3 +76,11 @@ def connect_to_redis(host: str, port: int, password: str, db: int = 0):
     except redis.RedisError as e:
         l.error(f"Redis connection error: {str(e)}")
         return None
+
+
+def btoa(x): return base64.b64decode(x)
+def atob(x): return base64.b64encode(bytes(x, 'utf-8')).decode('utf-8')
+
+
+def encrypt_string(s: str) -> str:
+    return AES.new(c.ENCRYPT_KEY.encode())
