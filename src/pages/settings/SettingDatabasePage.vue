@@ -16,11 +16,13 @@
       :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
-      @clone:row="cloneRow($event)"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="setting-database"
     />
     <DialogComponent
@@ -88,6 +90,7 @@ import UsualButton from "src/components/Button.vue";
 import DialogComponent from "src/components/Dialog.vue";
 import { STATUS } from "src/utils/constants.js";
 import { generateColumn } from "src/utils/util.js";
+import AESCipher from "src/utils/crypto";
 import moment from "moment";
 import {
   getDatabaseList,
@@ -112,6 +115,7 @@ export default defineComponent({
   setup() {
     const $q = useQuasar();
     const { t } = useI18n();
+    const crypto = new AESCipher();
     const formList = ref([
       {
         label: "Name",
@@ -183,6 +187,7 @@ export default defineComponent({
       $q.loading.show();
       const data = { ...row };
       data.database = row.database.value || data.database;
+      data.password = crypto.encrypt(data.password);
       await getTables(data)
         .then((res) => {
           formList.value[6].option = [];
@@ -216,7 +221,8 @@ export default defineComponent({
     const getDatabasesForOption = async (data) => {
       // get databases
       $q.loading.show();
-      await getDatabases(data)
+      const submitData = { ...data, password: crypto.encrypt(data.password) };
+      await getDatabases(submitData)
         .then((res) => {
           formList.value[5].option = [];
           if (res.code !== 0) {
@@ -250,6 +256,7 @@ export default defineComponent({
       databaseDetails,
       getTablesForOption,
       getDatabasesForOption,
+      crypto,
     };
   },
   data() {
@@ -278,6 +285,7 @@ export default defineComponent({
       infoDialogStatus: ref(false),
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -310,14 +318,23 @@ export default defineComponent({
       this.editDialogStatus = true;
     },
     cloneRow(row) {
-      this.$router.push({
-        path: "/settings/database/add",
-        query: {
-          is_clone: true,
+      const rowString = btoa(
+        JSON.stringify({
           host: row.host,
           port: row.port,
           username: row.username,
           password: row.password,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/database/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
         },
       });
     },
@@ -352,6 +369,7 @@ export default defineComponent({
       this.$q.loading.show();
       data.database = data.database.value || data.database;
       data.table = data.table.value || data.table;
+      data.password = this.crypto.encrypt(data.password);
       await editDatabase(data)
         .then((res) => {
           if (res.code !== 0) {
@@ -443,9 +461,13 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getDatabaseList()
+      await getDatabaseList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -472,10 +494,17 @@ export default defineComponent({
           } else {
             this.rowData = res.data.databases;
           }
+
+          for (const row of this.rowData) {
+            row.password = this.crypto.decrypt(row.password);
+          }
         })
         .finally(() => {
           this.$q.loading.hide();
         });
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

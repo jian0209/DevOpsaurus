@@ -15,6 +15,7 @@ import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import { addRedis, testRedis } from "src/api/settings.js";
 import "src/css/settingsScreen.scss";
+import AESCipher from "src/utils/crypto";
 
 export default defineComponent({
   name: "RedisAddPage",
@@ -22,11 +23,18 @@ export default defineComponent({
     SettingsAddCont,
   },
   created() {
-    if (this.$route.query.is_clone) {
-      this.redisDetails.host = this.$route.query.host;
-      this.redisDetails.port = this.$route.query.port;
-      this.redisDetails.database = this.$route.query.database;
-      this.redisDetails.auth = this.$route.query.auth;
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
+      );
+      const passedData = JSON.parse(decryptedText);
+      this.redisDetails.host = passedData.host;
+      this.redisDetails.port = passedData.port;
+      this.redisDetails.database = passedData.database;
+      this.redisDetails.auth = passedData.auth;
     }
   },
   data() {
@@ -71,12 +79,17 @@ export default defineComponent({
         auth: null,
         get: null,
       },
+      crypto: new AESCipher(),
     };
   },
   methods: {
     async add() {
       this.$q.loading.show();
-      await addRedis(this.redisDetails)
+      const submitData = {
+        ...this.redisDetails,
+        auth: this.crypto.encrypt(this.redisDetails.auth),
+      };
+      await addRedis(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -104,7 +117,11 @@ export default defineComponent({
     },
     async testRedisConnection() {
       this.$q.loading.show();
-      await testRedis(this.redisDetails)
+      const submitData = {
+        ...this.redisDetails,
+        auth: this.crypto.encrypt(this.redisDetails.auth),
+      };
+      await testRedis(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {

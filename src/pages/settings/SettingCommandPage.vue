@@ -16,11 +16,13 @@
       :rows="rowData"
       :columns="columns"
       @edit:row="editRow($event)"
+      @clone:row="cloneRow($event)"
       @disable:row="disableRow($event)"
       @enable:row="enableRow($event)"
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
-      @clone:row="cloneRow($event)"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="setting-command"
     />
     <DialogComponent
@@ -75,6 +77,7 @@ import { generateColumn } from "src/utils/util.js";
 import { STATUS } from "src/utils/constants.js";
 import moment from "moment";
 import "src/css/settingsScreen.scss";
+import AESCipher from "src/utils/crypto";
 import {
   getCommandList,
   editCommand,
@@ -149,6 +152,8 @@ export default defineComponent({
       infoDialogStatus: ref(false),
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
+      searchValue: ref({ name: null }),
+      crypto: new AESCipher(),
     };
   },
   methods: {
@@ -181,14 +186,23 @@ export default defineComponent({
       this.editDialogStatus = true;
     },
     cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          host: row.host,
+          username: row.username,
+          ssh_port: row.ssh_port,
+          ssh_key: row.ssh_key,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
       this.$router.push({
         path: "/settings/command/add",
         query: {
-          is_clone: true,
-          host: row.host,
-          username: row.username,
-          ssh_key: row.ssh_key,
-          ssh_port: row.ssh_port,
+          isClone: true,
+          passedData: encryptedString.toString(),
         },
       });
     },
@@ -218,6 +232,7 @@ export default defineComponent({
     },
     async submitEdit(data) {
       this.$q.loading.show();
+      data.ssh_key = this.crypto.encrypt(data.ssh_key);
       await editCommand(data)
         .then((res) => {
           if (res.code !== 0) {
@@ -309,9 +324,13 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getCommandList()
+      await getCommandList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -338,6 +357,10 @@ export default defineComponent({
           } else {
             this.rowData = res.data.commands;
           }
+
+          for (const row of this.rowData) {
+            row.ssh_key = this.crypto.decrypt(row.ssh_key);
+          }
         })
         .finally(() => {
           this.$q.loading.hide();
@@ -345,7 +368,11 @@ export default defineComponent({
     },
     async testConnect() {
       this.$q.loading.show();
-      await testCommand(this.formListDetails)
+      const submitData = {
+        ...this.formListDetails,
+        ssh_key: this.crypto.encrypt(this.formListDetails.ssh_key),
+      };
+      await testCommand(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -367,6 +394,9 @@ export default defineComponent({
           });
         })
         .finally(() => this.$q.loading.hide());
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

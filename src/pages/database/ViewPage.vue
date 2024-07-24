@@ -8,6 +8,8 @@
       :rows="rowData"
       :columns="columns"
       @click:row="infoRow"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="database-view"
     />
     <DialogComponent
@@ -21,7 +23,7 @@
       :dialogColumns="dialogColumns"
       :searchInput="searchInput"
       :searchFormList="searchFormList"
-      @search:data="searchData"
+      @search:data="searchDatabaseData"
     />
   </div>
 </template>
@@ -64,6 +66,7 @@ export default defineComponent({
       selectedRow: ref({}),
       dialogRows: ref([]),
       dialogColumns: ref([]),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -84,7 +87,7 @@ export default defineComponent({
       });
       this.infoDialogStatus = true;
     },
-    async searchData(data) {
+    async searchDatabaseData(data) {
       this.$q.loading.show();
       let select = "";
       let parameter = "";
@@ -176,9 +179,13 @@ export default defineComponent({
       //   parameter: data.parameter,
       // });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getDatabaseList()
+      await getDatabaseList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -209,6 +216,9 @@ export default defineComponent({
         .finally(() => {
           this.$q.loading.hide();
         });
+    },
+    searchData(data) {
+      this.getList(data);
     },
   },
   created() {

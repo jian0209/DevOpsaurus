@@ -116,6 +116,7 @@ def login():
                 "group": str(user.group),
                 "mfa_status": int(user.mfa_status),
                 "role": int(user.role),
+                "is_favourite": int(user.is_favourite),
                 "status": int(user.status),
                 "created_at": int(user.created_at)
             }
@@ -218,6 +219,7 @@ def mfa_login():
                 "group": str(user.group),
                 "mfa_status": int(user.mfa_status),
                 "role": int(user.role),
+                "is_favourite": int(user.is_favourite),
                 "status": int(user.status),
                 "created_at": int(user.created_at)
             }
@@ -375,7 +377,6 @@ def add():
         group = str(request.json.get("group", ""))
         role = int(request.json.get("role", 0))
         mfa_status = int(request.json.get("mfa_status", 0))
-        is_password_force_reset = const.ENABLED
         encrypted_password = encrypt_password(password)
 
         # Check if user already exists
@@ -387,11 +388,13 @@ def add():
         # Add Information
         # unix timestamp
         time_now = int(time.time())
-        status = 1
+        status = c.ENABLED
+        is_password_force_reset = const.ENABLED
+        is_favourite = c.DISABLED
 
         # write to db
         user = User(username=username, password=encrypted_password, email=email, group=group,
-                    role=role, mfa_status=mfa_status, status=status, created_at=time_now, is_password_force_reset=is_password_force_reset)
+                    role=role, is_favourite=is_favourite, mfa_status=mfa_status, status=status, created_at=time_now, is_password_force_reset=is_password_force_reset)
 
         db.session.add(user)
         db.session.commit()
@@ -524,6 +527,47 @@ def delete_user():
         pass
 
 
+@user_api.route(f'/{const.VERSION_API}/{const.USER_API}/edit_favourite', methods=['POST'])
+def edit_favourite():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        username = str(request.json.get("username", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            l.error(f"User {username} not found")
+            return response.get_response(response.USER_NOT_FOUND)
+
+        user.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited User {username} favourite")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit User Favourite",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} User {username}",
+            "created_at": int(time.time())
+        })
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Favourite user failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
 @user_api.route(f'/{const.VERSION_API}/{const.USER_API}/edit_status', methods=['POST'])
 def edit_status_user():
     try:
@@ -575,7 +619,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        users = User.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            users = User.query.filter(
+                User.username.like(f"%{search_name}%")).all()
+        else:
+            users = User.query.all()
         user_list = []
         for user in users:
             user_list.append({
@@ -585,6 +634,7 @@ def get_list():
                 "group": user.group,
                 "role": user.role,
                 "mfa_status": user.mfa_status,
+                # "is_favourite": user.is_favourite,
                 "status": user.status,
                 "is_password_force_reset": user.is_password_force_reset,
                 "created_at": user.created_at * 1000

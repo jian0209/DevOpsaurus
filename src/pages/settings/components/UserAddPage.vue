@@ -21,12 +21,19 @@ export default defineComponent({
     SettingsAddCont,
   },
   created() {
-    if (this.$route.query.is_clone) {
-      this.userDetails.group = this.$route.query.group;
-      this.userDetails.role = ROLES_GROUP.find(
-        (role) => role.value === parseInt(this.$route.query.role)
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
       );
-      this.userDetails.mfa_status = parseInt(this.$route.query.mfa_status);
+      const passedData = JSON.parse(decryptedText);
+      this.userDetails.group = passedData.group;
+      this.userDetails.role = ROLES_GROUP.find(
+        (role) => role.value === parseInt(passedData.role)
+      );
+      this.userDetails.mfa_status = parseInt(passedData.mfa_status);
     }
   },
   data() {

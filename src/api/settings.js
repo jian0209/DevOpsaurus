@@ -1,7 +1,7 @@
 import { api } from "src/boot/axios";
 
-export function getUserList() {
-  return api.post("/user/list", {});
+export function getUserList(data) {
+  return api.post("/user/list", data);
 }
 
 export function editUser(data) {
@@ -22,8 +22,8 @@ export function addUser(data) {
 
 //////////////// end user ////////////////
 
-export function getRedisList() {
-  return api.post("/redis/list", {});
+export function getRedisList(data) {
+  return api.post("/redis/list", data);
 }
 
 export function editRedis(data) {
@@ -32,6 +32,10 @@ export function editRedis(data) {
 
 export function editStatusRedis(data) {
   return api.post("/redis/edit_status", data);
+}
+
+export function editFavouriteRedis(data) {
+  return api.post("/redis/edit_favourite", data);
 }
 
 export function deleteRedis(data) {
@@ -48,14 +52,14 @@ export function testRedis(data) {
 
 //////////////// end redis ////////////////
 
-export function getUpsList() {
-  return api.post("/ups/list", {});
+export function getUpsList(data) {
+  return api.post("/ups/list", data);
 }
 
 //////////////// end ups ////////////////
 
-export function getNodesList() {
-  return api.post("/nodes/list", {});
+export function getNodesList(data) {
+  return api.post("/nodes/list", data);
 }
 
 export function editNode(data) {
@@ -76,8 +80,8 @@ export function addNode(data) {
 
 //////////////// end nodes ////////////////
 
-export function getDatabaseList() {
-  return api.post("/database/list", {});
+export function getDatabaseList(data) {
+  return api.post("/database/list", data);
 }
 
 export function editDatabase(data) {
@@ -86,6 +90,10 @@ export function editDatabase(data) {
 
 export function editStatusDatabase(data) {
   return api.post("/database/edit_status", data);
+}
+
+export function editFavouriteDatabase(data) {
+  return api.post("/database/edit_favourite", data);
 }
 
 export function deleteDatabase(data) {
@@ -106,8 +114,8 @@ export function getTables(data) {
 
 //////////////// end database ////////////////
 
-export function getCommandList() {
-  return api.post("/command/list", {});
+export function getCommandList(data) {
+  return api.post("/command/list", data);
 }
 
 export function editCommand(data) {
@@ -116,6 +124,10 @@ export function editCommand(data) {
 
 export function editStatusCommand(data) {
   return api.post("/command/edit_status", data);
+}
+
+export function editFavouriteCommand(data) {
+  return api.post("/command/edit_favourite", data);
 }
 
 export function deleteCommand(data) {

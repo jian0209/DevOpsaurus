@@ -15,6 +15,7 @@ import { defineComponent } from "vue";
 import SettingsAddCont from "src/components/SettingsAddCont.vue";
 import "src/css/settingsScreen.scss";
 import { addCommand, testCommand } from "src/api/settings";
+import AESCipher from "src/utils/crypto";
 
 export default defineComponent({
   name: "CommandAddPage",
@@ -22,11 +23,18 @@ export default defineComponent({
     SettingsAddCont,
   },
   created() {
-    if (this.$route.query.is_clone) {
-      this.commandDetails.host = this.$route.query.host;
-      this.commandDetails.username = this.$route.query.username;
-      this.commandDetails.ssh_key = this.$route.query.ssh_key;
-      this.commandDetails.ssh_port = this.$route.query.ssh_port;
+    if (this.$route.query.isClone) {
+      const decryptedText = atob(
+        this.$CryptoJS.AES.decrypt(
+          this.$route.query.passedData,
+          process.env.ENCRYPT_KEY
+        ).toString(this.$CryptoJS.enc.Utf8)
+      );
+      const passedData = JSON.parse(decryptedText);
+      this.commandDetails.host = passedData.host;
+      this.commandDetails.username = passedData.username;
+      this.commandDetails.ssh_key = passedData.ssh_key;
+      this.commandDetails.ssh_port = passedData.ssh_port;
     }
   },
   data() {
@@ -71,11 +79,15 @@ export default defineComponent({
         ssh_port: null,
         command: null,
       },
+      crypto: new AESCipher(),
     };
   },
   methods: {
     async add() {
-      const data = this.commandDetails;
+      const data = {
+        ...this.commandDetails,
+        ssh_key: this.crypto.encrypt(this.commandDetails.ssh_key),
+      };
       this.$q.loading.show();
       await addCommand(data)
         .then((res) => {
@@ -103,7 +115,11 @@ export default defineComponent({
     },
     async testCommand() {
       this.$q.loading.show();
-      await testCommand(this.commandDetails)
+      const submitData = {
+        ...this.commandDetails,
+        ssh_key: this.crypto.encrypt(this.commandDetails.ssh_key),
+      };
+      await testCommand(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {

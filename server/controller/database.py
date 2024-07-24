@@ -11,9 +11,12 @@ from utils.logs import save_system_log
 from utils.helper import connect_to_database
 from decimal import Decimal
 from datetime import datetime
+from utils.crypto import AESCipher
+from conf.config import Config as c
 
 
 database_api = Blueprint('database_api', __name__)
+aes_cipher = AESCipher(c.ENCRYPT_KEY)
 
 
 @database_api.route(f'/{const.VERSION_API}/{const.DATABASE_API}/add', methods=['POST'])
@@ -35,6 +38,7 @@ def add():
         table = str(request.json.get("table", ""))
         select = str(request.json.get("select", ""))
         parameter = str(request.json.get("parameter", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
 
         # Check if user already exists
         data_database = Database.query.filter_by(name=name).first()
@@ -48,7 +52,7 @@ def add():
 
         # write to db
         add_database = Database(name=name, host=host, username=username, password=password, port=port,
-                                database=database, table=table, select=select, parameter=parameter, status=status, created_at=time_now)
+                                database=database, table=table, select=select, parameter=parameter, is_favourite=is_favourite, status=status, created_at=time_now)
 
         db.session.add(add_database)
         db.session.commit()
@@ -197,6 +201,52 @@ def edit_status_database():
             "description": f"Admin: {admin_info['username']} edited Database {name} status to {status_name}",
             "created_at": int(time.time())
         })
+        send_all_message(
+            f"{admin_info['username']} edited Database {name} status to {status_name}")
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit database status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
+@database_api.route(f'/{const.VERSION_API}/{const.DATABASE_API}/edit_favourite', methods=['POST'])
+def edit_favourite_database():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        name = str(request.json.get("name", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        data_database = Database.query.filter_by(name=name).first()
+        if not data_database:
+            l.error(f"Database {name} not found")
+            return response.get_response(response.DATABASE_NOT_FOUND)
+
+        data_database.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited Database {name} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit Database Favourite",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} Database {name}",
+            "created_at": int(time.time())
+        })
+
+        send_all_message(
+            f"{admin_info['username']} {favourite_name} Database {name}")
 
         return response.get_response(response.SUCCESS)
     except Exception as e:
@@ -221,10 +271,12 @@ def get_databases():
         port = int(request.json.get("port", 3306))
         password = str(request.json.get("password", ""))
 
+        decrypted_password = aes_cipher.decrypt(password)
+
         databases = tuple()
         database_list = []
 
-        conn = connect_to_database(host, username, password, port)
+        conn = connect_to_database(host, username, decrypted_password, port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
@@ -258,9 +310,11 @@ def get_tables():
         password = str(request.json.get("password", ""))
         database = str(request.json.get("database", ""))
 
+        decrypted_password = aes_cipher.decrypt(password)
+
         table_list = []
 
-        conn = connect_to_database(host, username, password, port)
+        conn = connect_to_database(host, username, decrypted_password, port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
@@ -288,7 +342,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        data_database = Database.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            data_database = Database.query.filter(
+                Database.name.like(f"%{search_name}%")).all()
+        else:
+            data_database = Database.query.all()
         databases_list = []
         for database in data_database:
             databases_list.append({
@@ -302,6 +361,7 @@ def get_list():
                 "table": database.table,
                 "select": database.select,
                 "parameter": database.parameter,
+                "is_favourite": database.is_favourite,
                 "status": database.status,
                 "created_at": database.created_at * 1000
             })
@@ -324,9 +384,14 @@ def get_database_list():
             l.error(f"User {user_info.get('username')} is not Reader or above")
             return response.get_response(response.FORBIDDEN)
 
-        data_database = Database.query.filter_by(status=1).all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            database_all = Database.query.filter(
+                Database.name.like(f"%{search_name}%")).filter_by(status=1).all()
+        else:
+            database_all = Database.query.filter_by(status=1).all()
         databases_list = []
-        for database in data_database:
+        for database in database_all:
             databases_list.append({
                 "id": database.id,
                 "name": database.name,
@@ -363,13 +428,14 @@ def execute_query_to_get_data():
             l.error(f"Database {database_id} not found")
             return response.get_response(response.DATABASE_NOT_FOUND)
 
+        decrypted_password = aes_cipher.decrypt(data_database.password)
+
         conn = connect_to_database(
-            data_database.host, data_database.username, data_database.password, data_database.port)
+            data_database.host, data_database.username, decrypted_password, data_database.port)
         if conn is None:
             l.error(f"Error connecting to database")
             return response.get_response(response.DATABASE_CONN_ERROR)
 
-        l.info(f"Query: {query}")
         with conn.cursor() as cursor:
             cursor.execute(query)
             data = cursor.fetchall()

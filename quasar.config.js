@@ -16,7 +16,7 @@ export default configure((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ["i18n", "axios", "authentication"],
+    boot: ["i18n", "axios", "authentication", "crypto"],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ["app.scss"],
@@ -54,6 +54,7 @@ export default configure((ctx) => {
 
       env: {
         WEB_URL: process.env.WEB_URL || "http://localhost",
+        ENCRYPT_KEY: process.env.ENCRYPT_KEY || "devopsaurus",
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

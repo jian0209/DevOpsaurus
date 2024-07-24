@@ -50,7 +50,11 @@ export const generateColumn = (
               ? STATUS[val] || "Unknown"
               : key === "role"
                 ? ROLES[val]
-                : val;
+                : key === "is_favourite"
+                  ? val
+                    ? "Yes"
+                    : "No"
+                  : val;
       },
       sortable: true,
     });

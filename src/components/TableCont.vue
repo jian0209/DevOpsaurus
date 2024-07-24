@@ -1,6 +1,33 @@
 <template>
   <div class="table-cont">
-    <div class="export-btn-cont">
+    <div
+      class="table-top-function-cont"
+      :style="
+        !$props.noSearch
+          ? 'justify-content: space-between'
+          : 'justify-content: flex-end'
+      "
+    >
+      <div class="table-search-cont" v-if="!$props.noSearch">
+        <q-input
+          v-model="$props.searchValue['name']"
+          type="text"
+          class="table-search-input"
+          color="secondary"
+          placeholder="Name"
+          dense
+          outlined
+          clearable
+        />
+        <q-btn
+          color="secondary"
+          icon-right="search"
+          label="Search"
+          no-caps
+          :class="!$props.noSearch ? 'search-btn' : null"
+          @click="searchData"
+        />
+      </div>
       <q-btn
         color="secondary"
         icon-right="archive"
@@ -50,6 +77,22 @@
       <template v-slot:body-cell-operate="props">
         <q-td :props="props">
           <div class="q-gutter-sm">
+            <UsualButton
+              v-if="props.row.is_favourite === 0"
+              color="positive"
+              label="Star"
+              @action:click="favouriteRow(props.row)"
+              style="width: 90px"
+              outline
+            />
+            <UsualButton
+              v-if="props.row.is_favourite === 1"
+              color="accent"
+              label="Star"
+              @action:click="unFavouriteRow(props.row)"
+              style="width: 90px"
+              outline
+            />
             <UsualButton
               color="info"
               label="Clone"
@@ -129,6 +172,8 @@ export default defineComponent({
     rowKey: String,
     noDataLabel: String,
     noClass: Boolean,
+    noSearch: Boolean,
+    searchValue: Object,
     title: String,
   },
   methods: {
@@ -147,6 +192,12 @@ export default defineComponent({
     enableRow(row) {
       this.$emit("enable:row", row);
     },
+    favouriteRow(row) {
+      this.$emit("favourite:row", row);
+    },
+    unFavouriteRow(row) {
+      this.$emit("unFavourite:row", row);
+    },
     deleteRow(row) {
       this.$emit("delete:row", row);
     },
@@ -155,6 +206,9 @@ export default defineComponent({
     },
     rowClick(event, row, index) {
       this.$emit("click:row", row);
+    },
+    searchData() {
+      this.$emit("search:data", this.searchValue);
     },
     exportTable() {
       const content = [this.columns.map((col) => wrapCsvValue(col.label))]

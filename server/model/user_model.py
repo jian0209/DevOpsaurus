@@ -12,5 +12,6 @@ class User(db.Model):
     mfa_secret_key = db.Column(db.String(50))
     is_password_force_reset = db.Column(db.Integer, default=0)
     role = db.Column(db.Integer, default=0)
+    is_favourite = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, default=0)
     created_at = db.Column(db.TIMESTAMP)

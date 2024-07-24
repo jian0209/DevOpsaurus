@@ -18,6 +18,8 @@
       @delete:row="deleteRow($event)"
       @info:row="infoRow($event)"
       @clone:row="cloneRow($event)"
+      :searchValue="searchValue"
+      @search:data="searchData"
       title="setting-user"
     />
     <DialogComponent
@@ -167,6 +169,7 @@ export default defineComponent({
       infoDialogStatus: ref(false),
       selectedInfoRow: ref({}),
       selectedRow: ref(""),
+      searchValue: ref({ name: null }),
     };
   },
   methods: {
@@ -202,6 +205,26 @@ export default defineComponent({
       };
       this.editDialogStatus = true;
     },
+    cloneRow(row) {
+      const rowString = btoa(
+        JSON.stringify({
+          role: row.role,
+          group: row.group,
+          mfa_status: row.mfa_status,
+        })
+      );
+      const encryptedString = this.$CryptoJS.AES.encrypt(
+        rowString,
+        process.env.ENCRYPT_KEY
+      );
+      this.$router.push({
+        path: "/settings/user/add",
+        query: {
+          isClone: true,
+          passedData: encryptedString.toString(),
+        },
+      });
+    },
     disableRow(row) {
       this.selectedRow = row.username;
       this.disableDialogStatus = true;
@@ -213,18 +236,6 @@ export default defineComponent({
     deleteRow(row) {
       this.selectedRow = row.username;
       this.deleteDialogStatus = true;
-    },
-    cloneRow(row) {
-      this.$router.push({
-        path: "/settings/user/add",
-        query: {
-          is_clone: true,
-          role: row.role,
-          group: row.group,
-          mfa_status: row.mfa_status,
-          is_password_force_reset: row.is_password_force_reset,
-        },
-      });
     },
     infoRow(row) {
       this.selectedInfoRow = {
@@ -335,9 +346,13 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
-    async getList() {
+    async getList(searchData) {
+      const submitData = { name: null };
+      if (searchData && searchData.name) {
+        submitData.name = searchData.name;
+      }
       this.$q.loading.show();
-      await getUserList()
+      await getUserList(submitData)
         .then((res) => {
           if (res.code !== 0) {
             if (res.code === 9001) {
@@ -369,8 +384,10 @@ export default defineComponent({
           this.$q.loading.hide();
         });
     },
+    searchData(data) {
+      this.getList(data);
+    },
   },
-  computed: {},
   created() {
     this.initData();
   },

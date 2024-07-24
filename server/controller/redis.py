@@ -9,10 +9,11 @@ from utils.message import send_all_message
 from model.db_init import db
 from utils.logs import save_system_log
 from utils.helper import connect_to_redis
-import redis
-
+from utils.crypto import AESCipher
+from conf.config import Config as c
 
 redis_api = Blueprint('redis_api', __name__)
+aes_cipher = AESCipher(c.ENCRYPT_KEY)
 
 
 @redis_api.route(f'/{const.VERSION_API}/{const.REDIS_API}/add', methods=['POST'])
@@ -31,6 +32,7 @@ def add():
         auth = str(request.json.get("auth", ""))
         database = int(request.json.get("database", 0))
         get = str(request.json.get("get", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
 
         # Check if user already exists
         redis = Redis.query.filter_by(name=name).first()
@@ -44,7 +46,7 @@ def add():
         status = 1
 
         # write to db
-        add_redis = Redis(name=name, host=host, port=port, auth=auth, database=database, get=get, status=status,
+        add_redis = Redis(name=name, host=host, port=port, auth=auth, database=database, get=get, is_favourite=is_favourite, status=status,
                           created_at=time_now)
 
         db.session.add(add_redis)
@@ -189,6 +191,53 @@ def edit_status_redis():
             "created_at": int(time.time())
         })
 
+        send_all_message(
+            f"{admin_info['username']} edited Redis {name} status to {status_name}")
+
+        return response.get_response(response.SUCCESS)
+    except Exception as e:
+        l.error(f"Edit Command status failed: {str(e)}")
+        return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
+    finally:
+        pass
+
+
+@redis_api.route(f'/{const.VERSION_API}/{const.REDIS_API}/edit_favourite', methods=['POST'])
+def edit_favourite_redis():
+    try:
+        token = str(request.headers.get("D-token"))
+        is_allow, admin_info = check_admin_account(token)
+
+        if not is_allow:
+            l.error(f"Admin {admin_info.get('username')} is not admin")
+            return response.get_response(response.FORBIDDEN)
+
+        name = str(request.json.get("name", ""))
+        is_favourite = int(request.json.get("is_favourite", 0))
+        favourite_name = "Star" if is_favourite == 1 else "Un-star"
+
+        redis = Redis.query.filter_by(name=name).first()
+        if not redis:
+            l.error(f"Redis {name} not found")
+            return response.get_response(response.REDIS_NOT_FOUND)
+
+        redis.is_favourite = is_favourite
+        db.session.commit()
+
+        l.info(
+            f"Admin: {admin_info['username']} edited Redis {name} status")
+        save_system_log({
+            "username": admin_info["username"],
+            "role": admin_info["role"],
+            "action": "Edit Redis Status",
+            "source": "Settings",
+            "description": f"Admin: {admin_info['username']} {favourite_name} Redis {name}",
+            "created_at": int(time.time())
+        })
+
+        send_all_message(
+            f"{admin_info['username']} {favourite_name} Redis {name}")
+
         return response.get_response(response.SUCCESS)
     except Exception as e:
         l.error(f"Edit Command status failed: {str(e)}")
@@ -211,8 +260,10 @@ def test_redis():
         port = int(request.json.get("port", 6379))
         auth = str(request.json.get("auth", ""))
 
+        decrypt_auth = aes_cipher.decrypt(auth)
+
         try:
-            conn = connect_to_redis(host, port, auth)
+            conn = connect_to_redis(host, port, decrypt_auth)
             conn.ping()
             conn.close()
         except Exception as e:
@@ -235,7 +286,12 @@ def get_list():
             l.error(f"Admin {admin_info.get('username')} is not admin")
             return response.get_response(response.FORBIDDEN)
 
-        redis_all = Redis.query.all()
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            redis_all = Redis.query.filter(
+                Redis.name.like(f"%{search_name}%")).all()
+        else:
+            redis_all = Redis.query.all()
         redis_list = []
         for redis in redis_all:
             redis_list.append({
@@ -246,6 +302,7 @@ def get_list():
                 "auth": redis.auth,
                 "database": redis.database,
                 "get": redis.get,
+                "is_favourite": redis.is_favourite,
                 "status": redis.status,
                 "created_at": redis.created_at * 1000
             })
@@ -268,38 +325,20 @@ def get_redis_list():
             l.error(f"User {user_info.get('username')} is not Reader or above")
             return response.get_response(response.FORBIDDEN)
 
-        redis_all = Redis.query.filter_by(status=1).all()
-        redis_list = []
-        conn_redis_dict = {}
-        for redis in redis_all:
-            conn_redis_dict[f"{redis.host}-{redis.port}-{redis.database}"] = {
-                "host": redis.host,
-                "port": redis.port,
-                "auth": redis.auth,
-                "database": redis.database
-            }
+        search_name = str(request.json.get("name", ""))
+        if search_name != "None":
+            redis_all = Redis.query.filter(
+                Redis.name.like(f"%{search_name}%")).filter_by(status=1).all()
+        else:
+            redis_all = Redis.query.filter_by(status=1).all()
 
+        redis_list = []
+        for redis in redis_all:
             redis_list.append({
-                # "name": f"{redis.host}-{redis.port}-{redis.database}",
                 "name": redis.name,
                 "id": redis.id,
                 "get": redis.get,
             })
-        # for item in redis_list:
-        #     conn = connect_to_redis(conn_redis_dict[item["name"]]["host"], conn_redis_dict[item["name"]]
-        #                             ["port"], conn_redis_dict[item["name"]]["auth"], conn_redis_dict[item["name"]]["database"])
-        #     if conn is None:
-        #         l.error(f"Redis connection error")
-        #         return response.get_response(response.REDIS_CONN_ERROR)
-        #     item["name"] = item["display_name"]
-        #     try:
-        #         get_data = conn.get(item["get"])
-        #         item["result"] = get_data.decode() if get_data else "nil"
-        #     except Exception as e:
-        #         l.error(f"Redis get error: {str(e)}")
-        #         item["result"] = "nil"
-        #     finally:
-        #         conn.close()
 
         return response.get_response(response.SUCCESS, {"redis": redis_list})
     except Exception as e:
@@ -329,8 +368,10 @@ def get_redis_result():
 
         return_result = {}
 
+        decrypt_auth = aes_cipher.decrypt(redis_detail.auth)
+
         conn = connect_to_redis(
-            redis_detail.host, redis_detail.port, redis_detail.auth, redis_detail.database)
+            redis_detail.host, redis_detail.port, decrypt_auth, redis_detail.database)
         if conn is None:
             l.error(f"Redis connection error")
             return response.get_response(response.REDIS_CONN_ERROR)
@@ -373,8 +414,10 @@ def set_redis_value():
             l.error(f"Redis {redis_id} not found")
             return response.get_response(response.REDIS_NOT_FOUND)
 
+        decrypt_auth = aes_cipher.decrypt(redis.auth)
+
         conn = connect_to_redis(redis.host, redis.port,
-                                redis.auth, redis.database)
+                                decrypt_auth, redis.database)
         if conn is None:
             l.error(f"Redis connection error")
             return response.get_response(response.REDIS_CONN_ERROR)
