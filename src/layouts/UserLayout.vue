@@ -35,6 +35,7 @@
           @update:activeLink="changeActiveLink($event)"
         />
       </q-list>
+      <div class="sidebar-version">v 1.1.0</div>
     </q-drawer>
 
     <q-page-container>
