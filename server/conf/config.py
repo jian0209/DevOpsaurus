@@ -13,7 +13,7 @@ class Config(object):
     SQLALCHEMY_POOL_PRE_PING = True
 
     LOG_PATH = os.getenv(
-        "LOG_PATH", "/Users/tecstation/Desktop/nicholas/DevOpsaurus/server/logs/")
+        "LOG_PATH", "/Users/nicholas/Desktop/my-project/note/DevOpsaurus/server/logs/")
 
     ENCRYPT_KEY = os.getenv("ENCRYPT_KEY", "devopsaurus")
     INITIAL_USERNAME = os.getenv("INITIAL_USERNAME", "admin")

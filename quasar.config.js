@@ -56,6 +56,7 @@ export default configure((ctx) => {
         WEB_URL: process.env.WEB_URL || "http://localhost",
         ENCRYPT_KEY: process.env.ENCRYPT_KEY || "devopsaurus",
       },
+      // env: require('./config/index.js')(),
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
