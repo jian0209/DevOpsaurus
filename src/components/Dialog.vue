@@ -4,7 +4,7 @@
     backdrop-filter="brightness(60%)"
     :full-width="$props.isTableDialog"
   >
-    <q-card class="form-dialog-card">
+    <q-card style="width: 800px; max-width: 80vw">
       <q-toolbar class="form-dialog-card-title">
         <q-toolbar-title>
           <span class="text-weight-bold">{{ $props.title }}</span>
