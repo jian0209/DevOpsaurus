@@ -21,8 +21,6 @@ services:
       INITIAL_PASSWORD: 'admin'
       INITIAL_EMAIL: 'admin@asd.com'
       WEB_URL: 'http://local.asd'
-    volumes:
-      - /devopsaurus/app:/app
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/v1/health"]
       interval: 30s
