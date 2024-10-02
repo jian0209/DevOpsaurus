@@ -1,6 +1,12 @@
 #! /bin/bash
 set -e
 
+# mv from app_bak to app
+if [ ! -d "/app/server" ]; then
+    cp -r /app_bak/* /app
+fi
+rm -rf /app_bak
+
 # Build application
 if [ ! -d "/app/client" ]; then
     mkdir -p /app/client
@@ -13,7 +19,8 @@ if [ ! -d "/app/client" ]; then
 fi
 
 # initialize the database
-if [ -f "/app/server/init_database.sql" ]; then
+OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=information_schema -e "SELECT COUNT(*) FROM tables WHERE table_schema = '$DATABASE_NAME'" -s)
+if [ $OUTPUT -eq 0 ]; then
     echo "Initializing the database..."
     mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME < /app/server/init_database.sql
     rm /app/server/init_database.sql
