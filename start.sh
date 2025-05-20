@@ -32,10 +32,12 @@ echo "Starting the application..."
 
 # use supervisord to start the application
 cd /app/server
-flask run --host=0.0.0.0 --port=9001 &
+flask run --host=0.0.0.0 --port=9001 2>&1 >> /dev/stdout &
+backend_pid=$!
 
 cd /app/client
-quasar serve --port 9000 &
+quasar serve --port 9000 2>&1 >> /dev/stdout &
+frontend_pid=$!
 # supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 
 while ! nc -z localhost 9001; do
@@ -54,4 +56,15 @@ fi
 
 echo "Application started."
 
-tail -f /dev/null
+while true; do
+    sleep 3
+    if ! kill -0 $backend_pid > /dev/null 2>&1; then
+        echo "backend has exited" > /dev/stdout
+        break
+    fi
+    if ! kill -0 $frontend_pid > /dev/null 2>&1; then
+        echo "frontend has exited" > /dev/stdout
+        break
+    fi
+done
+
