@@ -32,11 +32,11 @@ echo "Starting the application..."
 
 # use supervisord to start the application
 cd /app/server
-flask run --host=0.0.0.0 --port=9001 2>&1 >> /dev/stdout &
+flask run --host=0.0.0.0 --port=9001 >> /dev/stdout 2>&1 &
 backend_pid=$!
 
 cd /app/client
-quasar serve --port 9000 2>&1 >> /dev/stdout &
+quasar serve --port 9000 >> /dev/stdout 2>&1 &
 frontend_pid=$!
 # supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 
