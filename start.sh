@@ -8,15 +8,18 @@ fi
 rm -rf /app_bak
 
 # Build application
-if [ ! -d "/app/client" ]; then
-    mkdir -p /app/client
-    cd /app/build
-    echo "Building the application..."
-    npm install
-    WEB_URL=$WEB_URL npm run build
-    cp -r /app/build/dist/spa/* /app/client
-    rm -rf /app/build
-fi
+#if [ ! -d "/app/client" ]; then
+#    mkdir -p /app/client
+#    cd /app/build
+#    echo "Building the application..."
+#    npm install
+#    WEB_URL=$WEB_URL npm run build
+#    cp -r /app/build/dist/spa/* /app/client
+#    rm -rf /app/build
+#fi
+
+: "${WEB_URL:=http://localhost}"
+find /app/client -type f -name '*.js' -o | xargs sed -i "s|__WEB_URL__|$WEB_URL|g"
 
 # initialize the database
 OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=information_schema -e "SELECT COUNT(*) FROM tables WHERE table_schema = '$DATABASE_NAME'" -s)
