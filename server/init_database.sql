@@ -1,12 +1,16 @@
-CREATE DATABASE IF NOT EXISTS `devopsaurus` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+-- __DB__ will be replaced with actual database name
+-- __DB_USER__ will be replaced with actual database user
+-- __DB_PASSWORD__ will be replaced with actual database password
 
-CREATE USER IF NOT EXISTS 'devopsaurus'@'%' IDENTIFIED BY 'devopsaurus';
-GRANT ALL PRIVILEGES ON `devopsaurus`.* TO 'devopsaurus'@'%';
+CREATE DATABASE IF NOT EXISTS `__DB__` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE USER IF NOT EXISTS '__DB_USER__'@'%' IDENTIFIED BY '__DB_PASSWORD__';
+GRANT ALL PRIVILEGES ON `__DB__`.* TO '__DB_USER__'@'%';
 FLUSH PRIVILEGES;
 
-USE `devopsaurus`;
+USE `__DB__`;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_user_info` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_user_info` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'unique username',
   `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'password for username',
@@ -25,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_user_info` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_login_log` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_login_log` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint COMMENT 'user id' DEFAULT 0,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
@@ -39,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_login_log` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_system_log` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_system_log` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'username',
   `role` int DEFAULT 0 NOT NULL COMMENT 'user role, 0: visitor, 1: reader, 2: writer, 3: admin',
@@ -51,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_system_log` (
   INDEX idx_username (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_redis` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_redis` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -66,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_redis` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_nodes` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_nodes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `group_name` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'group name to which the node belongs',
@@ -80,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_nodes` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_database` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_database` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'user recognize name (unique)',
   `host` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -98,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_database` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_command` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_command` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'command name (unique)',
   `host` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'host ip / name',
@@ -113,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_command` (
   INDEX idx_name (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `devopsaurus`.`d_system_integration` (
+CREATE TABLE IF NOT EXISTS `__DB__`.`d_system_integration` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `is_email_allow` int NOT NULL COMMENT 'send email, 0: disable, 1: enable',
   `is_telegram_allow` int NOT NULL COMMENT 'send telegram message, 0: disable, 1: enable',

@@ -22,6 +22,10 @@ fi
 OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=information_schema -e "SELECT COUNT(*) FROM tables WHERE table_schema = '$DATABASE_NAME'" -s)
 if [ $OUTPUT -eq 0 ]; then
     echo "Initializing the database..."
+    sed -i "s/__DB__/$DATABASE_NAME/g" /app/server/init_database.sql
+    sed -i "s/__DB_USER__/$DATABASE_USERNAME/g" /app/server/init_database.sql
+    sed -i "s/__DB_PASSWORD__/$DATABASE_PASSWORD/g" /app/server/init_database.sql
+
     mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME < /app/server/init_database.sql
     rm /app/server/init_database.sql
 fi

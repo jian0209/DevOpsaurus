@@ -34,3 +34,6 @@ DevOps Platform with using vue and python
 ### Version 1.1.0
 - Add favourite to add into dashboard page
 - Dashboard page for monitoring
+
+### Version 1.1.1
+- Listening log and output to docker log
