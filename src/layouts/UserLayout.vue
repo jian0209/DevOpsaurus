@@ -225,6 +225,13 @@ export default defineComponent({
               routeTo: "/settings/command",
               activeLink: false,
             },
+            {
+              title: "Datasource",
+              name: "SettingsDatasource",
+              icon: "dataset",
+              routeTo: "/settings/datasource",
+              activeLink: false,
+            },
             // {
             //   title: "Docker Services",
             //   name: "SettingsDockerService",

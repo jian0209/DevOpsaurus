@@ -7,4 +7,5 @@ health_api = Blueprint('health_api', __name__)
 
 @health_api.route('/v1/health', methods=['GET'])
 def health():
+    l.info('Health check OK')
     return response.get_response(response.SUCCESS)

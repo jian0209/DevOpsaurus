@@ -7,29 +7,18 @@ if [ ! -d "/app/server" ]; then
 fi
 rm -rf /app_bak
 
-# Build application
-#if [ ! -d "/app/client" ]; then
-#    mkdir -p /app/client
-#    cd /app/build
-#    echo "Building the application..."
-#    npm install
-#    WEB_URL=$WEB_URL npm run build
-#    cp -r /app/build/dist/spa/* /app/client
-#    rm -rf /app/build
-#fi
-
 : "${WEB_URL:=http://localhost}"
-find /app/client -type f -name '*.js' -o | xargs sed -i "s|__WEB_URL__|$WEB_URL|g"
+find /app/client -type f -name '*.js' | xargs sed -i "s|__WEB_URL__|$WEB_URL|g"
 
 # initialize the database
-OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=information_schema -e "SELECT COUNT(*) FROM tables WHERE table_schema = '$DATABASE_NAME'" -s)
+OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --skip-ssl --database=information_schema -e "SELECT COUNT(*) FROM tables WHERE table_schema = '$DATABASE_NAME'" -s)
 if [ $OUTPUT -eq 0 ]; then
     echo "Initializing the database..."
     sed -i "s/__DB__/$DATABASE_NAME/g" /app/server/init_database.sql
     sed -i "s/__DB_USER__/$DATABASE_USERNAME/g" /app/server/init_database.sql
     sed -i "s/__DB_PASSWORD__/$DATABASE_PASSWORD/g" /app/server/init_database.sql
 
-    mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME < /app/server/init_database.sql
+    mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --skip-ssl --database=$DATABASE_NAME < /app/server/init_database.sql
     rm /app/server/init_database.sql
 fi
 
@@ -53,7 +42,7 @@ while ! nc -z localhost 9001; do
 done
 
 # get data from mysql and set to variable
-OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --database=$DATABASE_NAME -e "SELECT COUNT(*) FROM d_user_info" -s)
+OUTPUT=$(mysql -h$DATABASE_URL -u$DATABASE_USERNAME -p$DATABASE_PASSWORD --skip-ssl --database=$DATABASE_NAME -e "SELECT COUNT(*) FROM d_user_info" -s)
 if [ $OUTPUT -eq 0 ]; then
     echo "Initializing data..."
     curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:9001/api/v1/user/init_admin

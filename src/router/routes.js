@@ -193,6 +193,16 @@ const routes = [
         component: () => import("pages/settings/components/CommandAddPage.vue"),
       },
       {
+        path: "datasource",
+        name: "settings-datasource",
+        component: () => import("pages/settings/SettingDatasourcePage.vue"),
+      },
+      {
+        path: "datasource/add",
+        name: "settings-datasource-add",
+        component: () => import("pages/settings/components/CommandAddPage.vue"),
+      },
+      {
         path: "docker-service",
         name: "settings-docker-service",
         component: () => import("pages/settings/SettingDockerServicePage.vue"),

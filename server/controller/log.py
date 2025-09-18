@@ -57,3 +57,4 @@ def get_list(page: str):
         return response.get_response(response.SYSTEM_INTERNAL_EXCEPTION, {"msg": str(e)})
     finally:
         pass
+

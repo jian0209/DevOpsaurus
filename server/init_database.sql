@@ -4,10 +4,6 @@
 
 CREATE DATABASE IF NOT EXISTS `__DB__` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
-CREATE USER IF NOT EXISTS '__DB_USER__'@'%' IDENTIFIED BY '__DB_PASSWORD__';
-GRANT ALL PRIVILEGES ON `__DB__`.* TO '__DB_USER__'@'%';
-FLUSH PRIVILEGES;
-
 USE `__DB__`;
 
 CREATE TABLE IF NOT EXISTS `__DB__`.`d_user_info` (
@@ -138,3 +134,6 @@ CREATE TABLE IF NOT EXISTS `__DB__`.`d_system_integration` (
   `slack_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'slack token',
   PRIMARY KEY (`id`) -- 将 id 字段设置为主键
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `d_system_integration` (`id`, `is_email_allow`, `is_telegram_allow`, `is_slack_allow`, `email_smtp_server`, `email_smtp_port`, `email_smtp_username`, `email_smtp_password`, `email_from`, `email_helo`, `email_allow_ssl_tls`, `email_allow_start_tls`, `telegram_bot_token`, `telegram_chat_id`, `telegram_parse`, `slack_bot_token`, `slack_channel`, `slack_token`) VALUES
+(1, 0, 0, 0, NULL, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, NULL, NULL, NULL);

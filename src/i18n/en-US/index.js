@@ -64,6 +64,10 @@ export default {
       parameterPlaceholder: "id IN {ids} AND / OR name = {name}",
       parameterHint: "* Eg: id IN {variable1} AND name IN {variable2}",
     },
+    datasource: {
+      title: "Datasource Settings Page",
+      subtitle: "Configure Datasource Connection"
+    },
     button: {
       add: "Add {name}",
     },

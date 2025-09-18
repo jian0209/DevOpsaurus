@@ -24,6 +24,13 @@ DevOps Platform with using vue and python
 - Execute command with using SSH from configured server, no need to login to the server
 - Cute logo and name
 
+## To start it
+```sh
+#
+npm install
+npm run dev
+```
+
 ### Version 1.0.1
 - Add Search Functionality
 - Add Clone Functionality

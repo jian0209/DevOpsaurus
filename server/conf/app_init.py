@@ -32,6 +32,7 @@ app.register_blueprint(log_api)
 
 CORS(app, methods=["POST"], supports_credentials=True, max_age=600)
 
+l.info("Starting application...")
 # init db
 db.init_app(app)
 # init redis
@@ -76,4 +77,6 @@ def before_request():
         l.info("request url: {url}, method: {method}, format: json, body: {body}".format(
             url=request.url, method=request.method, body=request_body))
     else:
+        l.info("request url: {url}, method: {method}, format: {format}".format(
+          url=request.url, method=request.method, format="unknown"))
         pass
